@@ -1,0 +1,13 @@
+# Generic
+*~
+
+# Mix
+/_build
+/cover
+/deps
+/doc
+*.ez
+/mix.lock
+
+# erlang
+erl_crash.dump
