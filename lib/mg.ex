@@ -2,7 +2,9 @@ defmodule Mg do
 
   defmodule App do
     use Application
-    def start(_type, _args), do: Mg.Sup.start_link()
+    def start(_type, _args) do
+      Mg.Sup.start_link()
+    end
   end
 
   defmodule Sup do

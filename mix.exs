@@ -8,7 +8,17 @@ defmodule Mg.Mixfile do
       elixir: "~> 1.4",
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
-      deps: deps()
+      deps: deps(),
+
+      # Docs
+      name: "Mingus",
+      source_url: "http://gitlab01.priv.cloud.kbrwadventure.com/kbrw/mingus",
+      homepage_url: "http://gitlab01.priv.cloud.kbrwadventure.com/kbrw/mingus",
+      docs: [
+        #main: "Mg",
+        logo: "priv/mingus_logo_only.png",
+        extras: [ "doc/manual.md" ]
+      ]
     ]
   end
 
@@ -24,6 +34,8 @@ defmodule Mg.Mixfile do
 
   defp deps do
     [
+      {:earmark, "~> 1.2", only: :dev},
+      {:ex_doc, "~> 0.15", only: :dev, runtime: false},
       {:ranch, "~> 1.3"},
       {:poolboy, "~> 1.5"}
     ]
