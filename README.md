@@ -1,6 +1,8 @@
 # Mingus
 
-**TODO: Add description**
+![Mingus Logo](/priv/mingus_medium.png)
+
+Mingus is an orchestrator. Simple, efficient, fully distributed.
 
 ## Installation
 
