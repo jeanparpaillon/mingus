@@ -25,7 +25,7 @@ defmodule Mg.DNS do
     ]
 
     children = [
-      worker(Mg.DNS.Server, [:dns, opts, Application.get_env(:mingus, :store)]),
+      worker(Mg.DNS.Server, [:dns, opts]),
       :poolboy.child_spec(:dns_udp_pool, pool_opts, [])
     ] ++ servers
     Supervisor.start_link(children, strategy: :one_for_one)
@@ -86,7 +86,7 @@ defmodule Mg.DNS do
 	      {:ok, ans} ->
 	        :ok = :gen_udp.send(socket, from, port, ans)
 	        {:noreply, :ok}
-	      {:error, err} ->
+	      {:error, _err} ->
 	        {:noreply, :ok}
       end
     end
