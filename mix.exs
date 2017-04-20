@@ -25,8 +25,10 @@ defmodule Mg.Mixfile do
   def application do
     [
       mod: { Mg.App, [] },
+      registered: [ :dns, :dns_tcp, Mg.Store ],
       applications: [
-	      :logger, :ranch
+	      :logger, :ranch,
+        :crypto, :public_key, :ssl, :ssh
       ],
       env: []
     ]

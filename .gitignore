@@ -11,3 +11,7 @@
 
 # erlang
 erl_crash.dump
+
+# App specific
+!/priv/keys/README.md
+/priv/keys/

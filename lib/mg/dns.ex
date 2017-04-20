@@ -2,19 +2,17 @@ defmodule Mg.DNS do
   import Supervisor.Spec
   require Logger
 
+  alias Mg.Utils
+
   def start_link(opts) do
     servers = Keyword.get(opts, :listen, [])
-    |> Enum.map(fn {family, s_addr, port} ->
+    |> Enum.map(fn {family, addr, port} ->
       mod = case family do
 	            :udp -> Mg.DNS.UDP;
 	            :tcp -> Mg.DNS.TCP
 	          end
-      case :inet.parse_address('#{s_addr}') do
-	      {:ok, {_,_,_,_}=a} ->
-	        worker(mod, [:inet, a, port], id: :"#{s_addr}:#{port}/#{family}")
-	      {:ok, {_,_,_,_,_,_,_,_}=a} ->
-	        worker(mod, [:inet6, a, port], id: :"[#{s_addr}]:#{port}/#{family}")
-      end
+      {inet, a} = Utils.binding(addr)
+      worker(mod, [inet, a, port], id: :"#{:inet.ntoa(a)}:#{port}/#{family}")
     end)
 
     pool_opts = [
