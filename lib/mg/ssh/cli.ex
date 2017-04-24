@@ -42,7 +42,8 @@ defmodule Mg.SSH.Cli do
     GitCmd.send(pid, data)
     {:ok, s}
   end
-  def handle_ssh_msg({:ssh_cm, cm, {:exec, channelId, wantReply, cmd}}, %Mg.SSH.Cli{ cm: cm, channel: channelId }=s) do
+  def handle_ssh_msg({:ssh_cm, cm, {:exec, channelId, wantReply, cmd}},
+    %Mg.SSH.Cli{ cm: cm, channel: channelId }=s) do
     s = case GitCmd.run("#{cmd}", s) do
           {:error, _type, msg} ->
             Connection.reply_failure(cm, wantReply, channelId, "\n#{msg}\n\n")

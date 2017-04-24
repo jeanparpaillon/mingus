@@ -1,4 +1,6 @@
 defmodule Mg.Utils do
+  require Logger
+
   @moduledoc """
   Some facilities
   """
@@ -27,5 +29,10 @@ defmodule Mg.Utils do
           {:error, _} -> {:inet, {127, 0, 0, 1}}
         end
     end
+  end
+
+  def parse_address!(s) do
+    {:ok, addr} = :inet.parse_address('#{s}')
+    addr
   end
 end

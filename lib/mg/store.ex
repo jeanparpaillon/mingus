@@ -1,7 +1,21 @@
 defmodule Mg.Store do
+  use GenServer
   require Logger
 
-  def start_link(data) do
+  @kind_resource :"http://schemas.ogf.org/occi/core#resource"
+  @kind_link :"http://schemas.ogf.org/occi/core#link"
+
+  def start_link(src) do
+    path = case src do
+             {:priv_dir, path} ->
+               Path.join(:code.priv_dir(:mingus), path)
+             p when is_binary(p) ->
+               p
+           end
+    data = File.read!(path) |> Poison.decode!(keys: :atoms) |> parse
+    Enum.each(data, fn (item) ->
+      Logger.debug("ID: #{item[:id]}\n\t#{inspect item}")
+    end)
     Agent.start_link(fn -> data end, name: __MODULE__)
   end
 
@@ -12,7 +26,7 @@ defmodule Mg.Store do
     init = %{
       id: id,
       kind: kind,
-      parent: :resource
+      parent: @kind_resource
     }
     Enum.reduce(args, init, fn ({key, value}, acc) ->
       Map.put(acc, key, value)
@@ -35,10 +49,10 @@ defmodule Mg.Store do
   def links(entity, args \\ []) do
     Logger.debug("Store.links(#{inspect entity}, #{inspect args})")
     case entity[:parent] do
-      :resource ->
+      @kind_resource ->
         links = entity[:links] || []
         Enum.map(links, fn (link) -> get([ {:id, link} | args ]) end) |> List.flatten
-      :link ->
+      @kind_link ->
         []
     end
   end
@@ -59,13 +73,24 @@ defmodule Mg.Store do
     Enum.all?(filters, &(match(item, &1)))
   end
   defp match(item, {:kind, value}), do: item[:kind] == value
+  defp match(item, {:parent, value}), do: item[:parent] == value
   defp match(item, {:id, value}), do: item[:id] == value
-  defp match(item, {:source, value}), do: item[:source] == value
-  defp match(item, {:target, value}), do: item[:target] == value
+  defp match(item, {:source, value}), do: item[:source][:location] == value
+  defp match(item, {:target, value}), do: item[:target][:location] == value
   defp match(item, {key, value}) when is_atom(key) do
     item[:attributes][key] == value
   end
   defp match(item, {keys, value}) when is_list(keys) do
     get_in(item[:attributes], keys) == value
+  end
+
+  defp parse(data) do
+    Enum.map(data, fn (item) ->
+      Enum.reduce(item, %{}, fn
+        ({:kind, kind}, acc) -> Map.put(acc, :kind, :"#{kind}")
+        ({:parent, parent}, acc) -> Map.put(acc, :parent, :"#{parent}")
+        ({k, v}, acc) -> Map.put(acc, k, v)
+      end)
+    end)
   end
 end

@@ -4,6 +4,10 @@ defmodule Mg.DNS.Server do
   use GenServer
   alias Mg.DNS
   alias Mg.Store
+  alias Mg.Utils
+
+  @kind_application :"http://schemas.ogf.org/occi/platform#application"
+  @kind_proxy :"http://schemas.ogf.org/occi/platform#proxy"
 
   def start_link(name, opts) do
     GenServer.start_link(__MODULE__, opts, name: name)
@@ -42,15 +46,15 @@ defmodule Mg.DNS.Server do
   end
 
   defp handle_query(q, {host, _port}=from, s) do
-    ctx = case Store.get(kind: :application, ip: host) do
-            [] -> Store.resource("", :application)
+    ctx = case Store.get(kind: @kind_application, "occi.app.ip": "#{:inet.ntoa(host)}") do
+            [] -> Store.resource("", @kind_application)
             [ctx] -> ctx
           end
     handle_query_in_ctx(ctx, q, from, s)
   end
 
   defp handle_query_in_ctx(ctx, q, from, s) do
-    case Store.links(ctx, kind: :proxy, fqdn: "#{q.domain}") do
+    case Store.links(ctx, kind: @kind_proxy, "occi.app.fqdn": "#{q.domain}") do
       [] ->
         # No proxy for the requested app
         handle_query_no_ctx(q, from, s)
@@ -60,7 +64,7 @@ defmodule Mg.DNS.Server do
   end
 
   defp handle_query_no_ctx(q, from, s) do
-    case Store.get(kind: :application, fqdn: "#{q.domain}") do
+    case Store.get(kind: @kind_application, "occi.app.fqdn": "#{q.domain}") do
       [] ->
         # Transfer request
         handle_query_transfer(q, from, s)
@@ -75,14 +79,14 @@ defmodule Mg.DNS.Server do
   end
 
   defp handle_query_reply(res, q, {host, _port}, _s) do
-    ip = res.attributes.ip
-    Logger.debug("QUERY from #{:inet.ntoa(host)} -> #{q.class}/#{q.domain}: #{:inet.ntoa(ip)}")
+    ip = res.attributes[:"occi.app.ip"]
+    Logger.debug("QUERY from #{:inet.ntoa(host)} -> #{q.class}/#{q.domain}: #{ip}")
     %DNS.Resource{
       domain: q.domain,
       class: q.class,
       type: q.type,
       ttl: 300,
-      data: ip
+      data: Utils.parse_address!(ip)
     }
   end
 end

@@ -1,4 +1,7 @@
 defmodule Mg.SSH.Connection do
+  @moduledoc """
+  Mostly wrapper around :ssh_connection
+  """
 
   def reply_failure(cm, wantReply, channel, msg \\ nil) do
     if msg != nil, do: write_chars(cm, channel, msg, 1)

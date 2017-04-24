@@ -39,7 +39,8 @@ defmodule Mg.Mixfile do
       {:earmark, "~> 1.2", only: :dev},
       {:ex_doc, "~> 0.15", only: :dev, runtime: false},
       {:ranch, "~> 1.3"},
-      {:poolboy, "~> 1.5"}
+      {:poolboy, "~> 1.5"},
+      {:poison, "~> 3.1"}
     ]
   end
 end
