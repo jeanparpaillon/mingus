@@ -72,8 +72,14 @@ defmodule Mg.Store do
   defp match(item, filters) when is_list(filters) do
     Enum.all?(filters, &(match(item, &1)))
   end
+  defp match(item, {:category, category}) do
+    match(item, {:or, [parent: category, kind: category, mixin: category]})
+  end
   defp match(item, {:kind, value}), do: item[:kind] == value
   defp match(item, {:parent, value}), do: item[:parent] == value
+  defp match(item, {:mixin, value}) do
+    value in (item[:mixins] || [])
+  end
   defp match(item, {:id, value}), do: item[:id] == value
   defp match(item, {:source, value}), do: item[:source][:location] == value
   defp match(item, {:target, value}), do: item[:target][:location] == value
@@ -89,6 +95,7 @@ defmodule Mg.Store do
       Enum.reduce(item, %{}, fn
         ({:kind, kind}, acc) -> Map.put(acc, :kind, :"#{kind}")
         ({:parent, parent}, acc) -> Map.put(acc, :parent, :"#{parent}")
+        ({:mixins, mixins}, acc) -> Map.put(acc, :mixins, Enum.map(mixins, &(:"#{&1}")))
         ({k, v}, acc) -> Map.put(acc, k, v)
       end)
     end)
