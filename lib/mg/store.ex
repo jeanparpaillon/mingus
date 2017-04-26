@@ -13,9 +13,6 @@ defmodule Mg.Store do
                p
            end
     data = File.read!(path) |> Poison.decode!(keys: :atoms) |> parse
-    Enum.each(data, fn (item) ->
-      Logger.debug("ID: #{item[:id]}\n\t#{inspect item}")
-    end)
     Agent.start_link(fn -> data end, name: __MODULE__)
   end
 
