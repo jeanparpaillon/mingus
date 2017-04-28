@@ -14,7 +14,7 @@ defmodule Mg.SSH.Keys do
   end
 
   def is_auth_key(key, user, _opts) do
-    case Store.get(category: @mixin_ssh, id: "#{user}") do
+    case Store.get(category: @mixin_ssh, "occi.auth.login": "#{user}") do
       [] -> false
       [user] ->
         case :public_key.ssh_decode(user[:attributes][:"occi.auth.ssh.pub_key"], :public_key) do

@@ -3,10 +3,12 @@ defmodule Mg.SSH.Cli do
 
   alias Mg.SSH.Connection
   alias Mg.SSH.GitCmd
+  alias Mg.Store
 
   @behaviour :ssh_channel
 
-  defstruct channel: nil, cm: nil, worker: nil
+  defstruct channel: nil, cm: nil, worker: nil, infos: nil, user: nil
+  @kind_user :"http://schemas.ogf.org/occi/auth#user"
 
   ###
   ### Callbacks
@@ -28,7 +30,9 @@ defmodule Mg.SSH.Cli do
   end
 
   def handle_msg({:ssh_channel_up, channelId, connRef}, _) do
-    {:ok, %Mg.SSH.Cli{ channel: channelId, cm: connRef }}
+    infos = Connection.infos(connRef)
+    [user] = Store.get([kind: @kind_user, "occi.auth.login": "#{infos.user}"])
+    {:ok, %Mg.SSH.Cli{ channel: channelId, cm: connRef, infos: infos, user: user }}
   end
   def handle_msg({:EXIT, pid, _reason}, %Mg.SSH.Cli{ worker: pid, channel: channelId }=s) do
     {:stop, channelId, s}

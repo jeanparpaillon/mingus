@@ -17,26 +17,43 @@ defmodule Mg.Store do
   end
 
   @doc """
-  Create new resource with given key/value attributes
+  Create new entity
+  TODO: plug to erlang-occi for type checking etc
+  TODO: handle user
   """
-  def resource(id, kind, args \\ []) do
+  def create(kind, attrs, _user) do
     init = %{
-      id: id,
       kind: kind,
-      parent: @kind_resource
+      parent: @kind_resource,
+      attributes: %{}
     }
-    Enum.reduce(args, init, fn ({key, value}, acc) ->
-      Map.put(acc, key, value)
+    entity = Enum.reduce(attrs, init, fn
+      ({:id, id}, acc) -> Map.put(acc, :id, id)
+      ({:kind, _}, acc) -> acc
+      ({:parent, parent}, acc) -> Map.put(acc, :parent, parent)
+      ({:mixins, mixins}, acc) -> Map.put(acc, :mixins, mixins)
+      ({:source, source}, acc) -> Map.put(acc, :source, source)
+      ({:target, target}, acc) -> Map.put(acc, :target, target)
+      ({key, value}, acc) -> %{ acc | attributes: Map.put(acc.attributes, key, value) }
     end)
+    {:ok, entity}
   end
 
   @doc """
   Fetch entity from store with given args as filters
   """
-  def get(args \\ []) do
+  def get(args) do
     Logger.debug("Store.get(#{inspect args})")
     Agent.get(__MODULE__, &(&1))
     |> Enum.filter(fn (item) -> match(item, args) end)
+  end
+
+  @doc """
+  Fetch entity from store with given args as filters, and check authorization
+  TODO: really check authorization
+  """
+  def get(args, _user) do
+    {:ok, get(args)}
   end
 
   @doc """

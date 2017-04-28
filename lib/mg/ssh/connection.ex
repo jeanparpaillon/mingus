@@ -1,4 +1,5 @@
 defmodule Mg.SSH.Connection do
+  require Logger
   @moduledoc """
   Mostly wrapper around :ssh_connection
   """
@@ -15,6 +16,14 @@ defmodule Mg.SSH.Connection do
   def stop(%Mg.SSH.Cli{ channel: channel, cm: cm }, status) do
     :ssh_connection.exit_status(cm, channel, status)
     :ssh_connection.close(cm, channel)
+  end
+
+  def infos(connRef) do
+    :ssh.connection_info(connRef, [
+          :client_version, :server_version,
+          :user, :peer, :sockname]) |> Enum.reduce(%{}, fn
+      ({k, v}, acc) -> Map.put(acc, k, v)
+    end)
   end
 
   ###
