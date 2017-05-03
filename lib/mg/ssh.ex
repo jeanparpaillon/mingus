@@ -2,7 +2,6 @@ defmodule Mg.SSH do
   import Supervisor.Spec
   require Record
   require Logger
-  alias Mg.Store
   alias Mg.Utils
   alias Mg.SSH.Keys
 

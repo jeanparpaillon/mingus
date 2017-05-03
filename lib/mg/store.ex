@@ -45,7 +45,8 @@ defmodule Mg.Store do
   def get(args) do
     Logger.debug("Store.get(#{inspect args})")
     Agent.get(__MODULE__, &(&1))
-    |> Enum.filter(fn (item) -> match(item, args) end)
+    |> Enum.filter(fn ({_, item}) -> match(item, args) end)
+    |> Enum.map(fn ({_, entity}) -> entity end)
   end
 
   @doc """
@@ -105,13 +106,13 @@ defmodule Mg.Store do
   end
 
   defp parse(data) do
-    Enum.map(data, fn (item) ->
+    Enum.reduce(data, %{}, fn (item, store) ->
       Enum.reduce(item, %{}, fn
         ({:kind, kind}, acc) -> Map.put(acc, :kind, :"#{kind}")
         ({:parent, parent}, acc) -> Map.put(acc, :parent, :"#{parent}")
         ({:mixins, mixins}, acc) -> Map.put(acc, :mixins, Enum.map(mixins, &(:"#{&1}")))
         ({k, v}, acc) -> Map.put(acc, k, v)
-      end)
+      end) |> (&(Map.put(store, &1.id, &1))).()
     end)
   end
 end
