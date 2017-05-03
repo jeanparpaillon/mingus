@@ -14,7 +14,7 @@ defmodule Mg.SSH.GitCmd do
   @r_app_name Regex.compile!("^'\/*(?<app_name>[a-zA-Z0-9][a-zA-Z0-9@_-]*).git'$")
   @msg "Syntax is: git@...:<app>.git"
 
-  @kind_application :"http://schemas.ogf.org/occi/core#application"
+  @kind_application :"http://schemas.ogf.org/occi/platform#application"
 
   def run(cmd, client) do
     case check_cmd(cmd, client) do
@@ -83,11 +83,11 @@ defmodule Mg.SSH.GitCmd do
       {:ok, []} ->
         case cmd do
           # App do not exist
-          "git-upload-pack" -> {:error, :unknown_app}
+          "git-upload-pack" -> {:error, :unknown_app, @msg}
           "git-receive-pack" -> check_create_app(cmd, name, client)
         end
       {:ok, [app]} -> {:ok, cmd, find_git_dir(app)}
-      {:error, _}=e -> e
+      {:error, err} -> {:error, err, @msg}
     end
   end
 
@@ -99,7 +99,7 @@ defmodule Mg.SSH.GitCmd do
     ]
     case Store.create(@kind_application, attrs, client.user) do
       {:ok, app} -> {:ok, cmd, find_git_dir(app)}
-      {:error, _}=e -> e
+      {:error, err} -> {:error, err, @msg}
     end
   end
 
