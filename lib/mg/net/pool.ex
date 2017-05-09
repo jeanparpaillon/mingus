@@ -63,6 +63,27 @@ defmodule Mg.Net.Pool do
   end
 
   @doc """
+  Set reserved address or block
+  """
+  @spec reserved(Pool.t, :inet.ip_address, number) :: Pool.t
+  def reserved(%Pool{ type: type }=p, addr, mask \\ 0) do
+    mask = if mask == 0 do
+      case type do
+        :inet -> 32
+        :inet6 -> 128
+      end
+    else
+      mask
+    end
+    block = %Pool{ ip: addr_to_binary(addr), type: inet?(addr), mask: mask, status: :reserved, netmask: p.netmask }
+    case do_insert(p, block) do
+      # Silently returns original pool
+      :error -> p
+      updated -> updated
+    end
+  end
+
+  @doc """
   Return leases
   """
   @spec leases(Pool.t) :: [ {:inet.ip_address, number} ]
@@ -88,11 +109,7 @@ defmodule Mg.Net.Pool do
     [addr, mask] = String.split(cidr, "/")
     {:ok, addr} = :inet.parse_address('#{addr}')
     {mask, ""} = Integer.parse(mask)
-    type = case tuple_size(addr) do
-             4 -> :inet
-             8 -> :inet6
-           end
-    {type, addr, mask}
+    {inet?(addr), addr, mask}
   end
 
   defp addr_to_binary(addr) do
@@ -146,8 +163,28 @@ defmodule Mg.Net.Pool do
     end
   end
 
-  defp sub_block(p, :low),  do: low(p)  || new_sub_block(p, 0)
-  defp sub_block(p, :high), do: high(p) || new_sub_block(p, 1)
+  defp do_insert(%Pool{ mask: mask, status: :free }, %Pool{ mask: mask }=block), do: block
+  defp do_insert(%Pool{ status: :reserved }, _block), do: :error
+  defp do_insert(%Pool{ status: :lease },    _block), do: :error
+  defp do_insert(%Pool{ ip: parent_ip, mask: parent_mask }=p, %Pool{ ip: block_ip }=block) do
+    rest_size = bit_size(parent_ip) - parent_mask - 1
+    << _ :: size(parent_mask), lh :: size(1), _ :: size(rest_size) >> = block_ip
+    sub = sub_block(p, lh)
+    case do_insert(sub, block) do
+      :error -> :error
+      sub ->
+        if lh == 0 do
+          %Pool{ p | low: sub, status: :partial }
+        else
+          %Pool{ p | high: sub, status: :partial }
+        end
+    end
+  end
+
+  defp sub_block(%Pool{ low: low }=p, 0),       do: low  || new_sub_block(p, 0)
+  defp sub_block(%Pool{ low: low }=p, :low),    do: low  || new_sub_block(p, 0)
+  defp sub_block(%Pool{ high: high }=p, 1),     do: high || new_sub_block(p, 1)
+  defp sub_block(%Pool{ high: high }=p, :high), do: high || new_sub_block(p, 1)
 
   # Returns a block with netmask increased by one
   defp new_sub_block(%Pool{ ip: ip, mask: mask, netmask: netmask }, next_bit) do
@@ -213,4 +250,7 @@ defmodule Mg.Net.Pool do
 
   defp low(%Pool{ low: low }), do: low
   defp high(%Pool{ high: high }), do: high
+
+  defp inet?({_, _, _, _}), do: :inet
+  defp inet?({_, _, _, _, _, _, _, _}), do: :inet6
 end
