@@ -12,8 +12,12 @@ defmodule Mg.Net.Manager do
   @type policy :: :low | :high | :random
   @type mask :: :unique | integer
 
-  def start_link(opts) do
-    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  @doc """
+  Start the network pool manager
+  """
+  @spec start_link([String.t | Pool.id]) :: {:ok, pid}
+  def start_link(networks) do
+    GenServer.start_link(__MODULE__, networks, name: __MODULE__)
   end
 
   @doc """
