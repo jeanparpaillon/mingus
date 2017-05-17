@@ -38,5 +38,14 @@ defmodule MgTest.Net.Manager do
     assert Mg.Net.Manager.lease(@pool6_56) == nil
   end
 
+  test "Release not leased block" do
+    refute Mg.Net.Manager.release({{192, 68, 54, 2}, 23})
+  end
+
+  test "Release leased block" do
+    lease = Mg.Net.Manager.lease(@pool4_27, mask: 30)
+    assert Mg.Net.Manager.release(lease)
+  end
+
   doctest Mg.Net.Manager
 end
