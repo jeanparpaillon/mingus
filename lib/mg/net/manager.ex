@@ -1,15 +1,13 @@
 defmodule Mg.Net.Manager do
   use GenServer
 
+  import Ex2ms
   import Mg.Net.Pool
   import Mg.Net.Block
 
-  alias Mg.Store
   alias Mg.Net.Pool
   alias Mg.Net.Ip
   alias Mg.Net.Block
-
-  @mixin_ipnetwork :"http://schemas.ogf.org/occi/infrastructure/network#ipnetwork"
 
   @type policy :: :low | :high | :random
   @type mask :: :unique | integer
@@ -24,6 +22,14 @@ defmodule Mg.Net.Manager do
   @spec networks() :: [Pool.id]
   def networks() do
     GenServer.call(__MODULE__, :networks)
+  end
+
+  @doc """
+  Reease address block for a given network.
+  """
+  @spec lease(Block.id) :: boolean
+  def release(block_id) do
+    GenServer.call(__MODULE__, {:release, block_id})
   end
 
   @doc """
@@ -54,12 +60,10 @@ defmodule Mg.Net.Manager do
   ###
   ### Callbacks
   ###
-  def init(_) do
+  def init(networks) do
     pools = :ets.new(:pool, [:set, {:keypos, 2}])
     blocks = :ets.new(:block, [:set, {:keypos, 2}])
-    Store.get(mixin: @mixin_ipnetwork) |> Enum.each(fn (network) ->
-      true = :ets.insert(pools, Pool.create(network[:attributes][:"occi.network.address"]))
-    end)
+    networks |> Enum.each(&(true = :ets.insert(pools, Pool.create(&1))))
     {:ok, %{ pools: pools, blocks: blocks }}
   end
 
@@ -75,6 +79,16 @@ defmodule Mg.Net.Manager do
                end
         {ret, s} = do_lease(init, mask, policy, s)
         {:reply, ret, s}
+    end
+  end
+  def handle_call({:release, block_id}, _from, s) do
+    ms = fun do
+      {_, ^block_id, _, :reserved}=b -> b
+      {_, ^block_id, _, :lease}=b -> b
+    end
+    case :ets.select(s.blocks, ms) do
+      [] -> {:reply, false, s}
+      [block] -> {:reply, true, do_release(block, s)}
     end
   end
   def handle_call(:networks, _from, s) do
@@ -98,15 +112,15 @@ defmodule Mg.Net.Manager do
     # Block has been partially leased
     {nil, s}
   end
-  defp do_lease(block(id: {addr, mask}, status: :free, pool: {_, netmask})=b, mask, _policy, s) do
-    if Ip.reserved?(addr, netmask) do
+  defp do_lease(block(id: {_, mask}=block_id, status: :free, pool: {_, netmask})=b, mask, _policy, s) do
+    if Ip.reserved?(block_id, netmask) do
       b = block(b, status: :reserved)
       true = :ets.insert(s.blocks, b)
       {nil, s}
     else
       b = block(b, status: :lease)
       true = :ets.insert(s.blocks, b)
-      {{addr, mask}, s}
+      {block_id, s}
     end
   end
   defp do_lease(block(status: status), _mask, _policy, s) when status in [:reserved, :lease] do
@@ -119,12 +133,12 @@ defmodule Mg.Net.Manager do
            :low -> 0
            :high -> 1
          end
-    case do_lease(next(b, lh, s), mask, policy, s) do
+    case do_lease(child(b, lh, s), mask, policy, s) do
       {nil, s} ->
         # No lease available in sub-block
         # Try the other side...
         lh = if lh == 0, do: 1, else: 0
-        case do_lease(next(b, lh, s), mask, policy, s) do
+        case do_lease(child(b, lh, s), mask, policy, s) do
           {nil, s} -> {nil, s}
           {lease, s} -> do_lease_update(b, lease, s)
         end
@@ -138,11 +152,28 @@ defmodule Mg.Net.Manager do
     {lease, s}
   end
 
-  defp next(block(id: {addr, mask}, pool: pool_id), lh, s) do
-    nextaddr = Ip.next(addr, mask, lh)
-    case :ets.lookup(s.blocks, {nextaddr, mask + 1}) do
-      [] -> block(id: {nextaddr, mask + 1}, pool: pool_id)
+  defp child(block(id: id, pool: pool_id), lh, s) do
+    childaddr = Ip.child(id, lh)
+    case :ets.lookup(s.blocks, childaddr) do
+      [] -> block(id: childaddr, pool: pool_id)
       [block] -> block
     end
+  end
+
+  defp do_release(block(id: block_id, status: :partial)=b, s) do
+    Ip.children(block_id) |> Enum.all?(fn id ->
+      # true if all child blocks are free
+      :ets.lookup(s.blocks, id) == []
+    end) |> if(do: true = :ets.delete(s.blocks, block_id))
+    do_release_parent(b, s)
+  end
+  defp do_release(block(id: block_id)=b, s) do
+    true = :ets.delete(s.blocks, block_id)
+    do_release_parent(b, s)
+  end
+
+  defp do_release_parent(block(id: {_, mask}, pool: {_, mask}), s), do: s
+  defp do_release_parent(block(id: block_id, pool: pool_id), s) do
+    do_release(block(id: Ip.parent(block_id), pool: pool_id, status: :partial), s)
   end
 end

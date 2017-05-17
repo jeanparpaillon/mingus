@@ -11,11 +11,11 @@ defmodule Mg.Net.Pool do
   Create new pool from address + mask or CIDR string
   """
   @spec create({:inet.ip_address, integer} | String.t) :: Pool.t
-  def create({{_, _, _, _}=addr, mask}), do: new(addr, mask)
-  def create({{_, _, _, _, _, _, _, _}=addr, mask}), do: new(addr, mask)
+  def create({{_, _, _, _}=addr, mask}), do: new({addr, mask})
+  def create({{_, _, _, _, _, _, _, _}=addr, mask}), do: new({addr, mask})
   def create(cidr) when is_binary(cidr) or is_list(cidr) do
     {addr, mask} = parse(cidr)
-    new(addr, mask)
+    new({addr, mask})
   end
 
   def valid_mask(pool(id: {addr, _}), :unique) when tuple_size(addr) == 4, do: 32
@@ -32,8 +32,8 @@ defmodule Mg.Net.Pool do
   ###
   ### Private
   ###
-  defp new(addr, mask) do
-    pool(id: {Ip.network(addr, mask), mask})
+  defp new({addr, mask}) do
+    pool(id: Ip.network({addr, mask}))
   end
 
   defp parse(cidr) do

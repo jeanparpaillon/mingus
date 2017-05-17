@@ -15,7 +15,7 @@ defmodule Mg do
         worker(Mg.Store,       [Application.get_env(:mingus, :store)]),
         supervisor(Mg.SSH,     [Application.get_env(:mingus, :ssh)]),
 	      supervisor(Mg.DNS,     [Application.get_env(:mingus, :dns)]),
-        worker(Mg.Net.Manager, [Application.get_env(:mingus, :net)])
+        supervisor(Mg.Net,     [Application.get_env(:mingus, :net)])
       ], strategy: :one_for_one)
     end
   end
