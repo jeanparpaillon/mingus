@@ -7,7 +7,7 @@ defmodule Mg.SSH.GitCmd do
   require Logger
   use GenServer
   alias Mg.SSH.Connection
-  alias Mg.Store
+  alias OCCI.Store
 
   defstruct [:client, :port]
 

@@ -1,6 +1,6 @@
 defmodule Mg.Net do
   import Supervisor.Spec
-  alias Mg.Store
+  alias OCCI.Store
 
   @mixin_ipnetwork :"http://schemas.ogf.org/occi/infrastructure/network#ipnetwork"
 

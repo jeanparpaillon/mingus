@@ -1,7 +1,7 @@
 defmodule Mg.SSH.Keys do
   require Record
   require Logger
-  alias Mg.Store
+  alias OCCI.Store
   @behaviour :ssh_server_key_api
   @mixin_ssh :"http://schemas.ogf.org/occi/auth#ssh_user"
 

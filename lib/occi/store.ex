@@ -1,4 +1,4 @@
-defmodule Mg.Store do
+defmodule OCCI.Store do
   use GenServer
   require Logger
 

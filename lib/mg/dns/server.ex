@@ -2,8 +2,8 @@ defmodule Mg.DNS.Server do
   require Logger
 
   use GenServer
+  alias OCCI.Store
   alias Mg.DNS
-  alias Mg.Store
   alias Mg.Utils
 
   @kind_application :"http://schemas.ogf.org/occi/platform#application"

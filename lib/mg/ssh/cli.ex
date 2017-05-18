@@ -3,7 +3,7 @@ defmodule Mg.SSH.Cli do
 
   alias Mg.SSH.Connection
   alias Mg.SSH.GitCmd
-  alias Mg.Store
+  alias OCCI.Store
 
   @behaviour :ssh_channel
 
