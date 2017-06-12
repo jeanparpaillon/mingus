@@ -31,7 +31,7 @@ defmodule Mg.SSH.Cli do
 
   def handle_msg({:ssh_channel_up, channelId, connRef}, _) do
     infos = Connection.infos(connRef)
-    [user] = Store.get([kind: @kind_user, "occi.auth.login": "#{infos.user}"])
+    [user] = Store.lookup([kind: @kind_user, "occi.auth.login": "#{infos.user}"])
     {:ok, %Mg.SSH.Cli{ channel: channelId, cm: connRef, infos: infos, user: user }}
   end
   def handle_msg({:EXIT, pid, _reason}, %Mg.SSH.Cli{ worker: pid, channel: channelId }=s) do

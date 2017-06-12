@@ -79,7 +79,7 @@ defmodule Mg.SSH.GitCmd do
   end
 
   defp check_app(cmd, name, client) do
-    case Store.get([kind: @kind_application, "occi.app.name": name], client.user) do
+    case Store.lookup([kind: @kind_application, "occi.app.name": name], client.user) do
       {:ok, []} ->
         case cmd do
           # App do not exist

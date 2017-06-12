@@ -5,7 +5,7 @@ defmodule Mg.Net do
   @mixin_ipnetwork :"http://schemas.ogf.org/occi/infrastructure/network#ipnetwork"
 
   def start_link(_opts) do
-    networks = Store.get(mixin: @mixin_ipnetwork) |> Enum.map(fn network ->
+    networks = Store.lookup(mixin: @mixin_ipnetwork) |> Enum.map(fn network ->
       network[:attributes][:"occi.network.address"]
     end)
     srv = [

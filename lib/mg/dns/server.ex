@@ -46,7 +46,7 @@ defmodule Mg.DNS.Server do
   end
 
   defp handle_query(q, {host, _port}=from, s) do
-    ctx = case Store.get(kind: @kind_application, "occi.app.ip": "#{:inet.ntoa(host)}") do
+    ctx = case Store.lookup(kind: @kind_application, "occi.app.ip": "#{:inet.ntoa(host)}") do
             [] -> {:ok, app} = Store.create(@kind_application, [id: ""], []); app
             [ctx] -> ctx
           end
@@ -54,7 +54,7 @@ defmodule Mg.DNS.Server do
   end
 
   defp handle_query_in_ctx(ctx, q, from, s) do
-    case Store.links(ctx, kind: @kind_proxy, "occi.app.fqdn": "#{q.domain}") do
+    case Store.lookup(kind: @kind_proxy, "occi.app.fqdn": "#{q.domain}", source: ctx.id) do
       [] ->
         # No proxy for the requested app
         handle_query_no_ctx(q, from, s)
@@ -64,7 +64,7 @@ defmodule Mg.DNS.Server do
   end
 
   defp handle_query_no_ctx(q, from, s) do
-    case Store.get(kind: @kind_application, "occi.app.fqdn": "#{q.domain}") do
+    case Store.lookup(kind: @kind_application, "occi.app.fqdn": "#{q.domain}") do
       [] ->
         # Transfer request
         handle_query_transfer(q, from, s)
