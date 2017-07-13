@@ -47,7 +47,7 @@ defmodule Mg.DNS.Server do
 
   defp handle_query(q, {host, _port}=from, s) do
     ctx = case Store.lookup(kind: @kind_application, "occi.app.ip": "#{:inet.ntoa(host)}") do
-            [] -> {:ok, app} = Store.create(@kind_application, [id: ""], []); app
+            [] -> Mg.Model.new(@kind_application, [])
             [ctx] -> ctx
           end
     handle_query_in_ctx(ctx, q, from, s)

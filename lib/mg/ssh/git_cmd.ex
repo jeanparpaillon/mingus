@@ -79,7 +79,7 @@ defmodule Mg.SSH.GitCmd do
   end
 
   defp check_app(cmd, name, client) do
-    case Store.lookup([kind: @kind_application, "occi.app.name": name], client.user) do
+    case Store.lookup([kind: @kind_application, "occi.app.name": name]) do
       {:ok, []} ->
         case cmd do
           # App do not exist
@@ -97,7 +97,8 @@ defmodule Mg.SSH.GitCmd do
       "occi.app.name": name,
       "occi.core.summary": "Generated ..."
     ]
-    case Store.create(@kind_application, attrs, client.user) do
+    app = Mg.Model.new(@kind_application, attrs)
+    case Store.create(app, client.user) do
       {:ok, app} -> {:ok, cmd, find_git_dir(app)}
       {:error, err} -> {:error, err, @msg}
     end

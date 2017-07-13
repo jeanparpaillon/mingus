@@ -12,7 +12,7 @@ defmodule Mg do
 
     def start_link do
       Supervisor.start_link([
-        worker(OCCI.Store,     [Application.get_env(:mingus, :store)]),
+        worker(OCCI.Store,     [Application.get_env(:occi, :backend)]),
         supervisor(Mg.SSH,     [Application.get_env(:mingus, :ssh)]),
 	      supervisor(Mg.DNS,     [Application.get_env(:mingus, :dns)]),
         supervisor(Mg.Net,     [Application.get_env(:mingus, :net)])
