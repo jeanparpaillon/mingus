@@ -14,12 +14,11 @@ defmodule Mg.SSH do
       auth_methods: 'publickey',
       key_cb: {Mg.SSH.Keys, [host_keys: host_keys]},
       subsystems: [],
-      ssh_cli: {Mg.SSH.Cli, []},
-      user_interaction: false
+      ssh_cli: {Mg.SSH.Cli, []}
     ]
     listeners = Keyword.get(opts, :listen, []) |> Enum.map(fn {addr, port} ->
       {_inet, a} = Utils.binding(addr)
-      Logger.info("<SSH> Start listener on port #{port}")
+      Logger.info("<SSH> Start listener on #{addr}:#{port}")
       worker(:ssh, [a, port, ssh_opts], function: :daemon)
     end)
 
