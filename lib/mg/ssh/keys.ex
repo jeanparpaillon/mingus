@@ -90,7 +90,7 @@ defmodule Mg.SSH.Keys do
     comment = Application.get_env(:mingus, :id, "mingus") <> "@mingus"
     type = alg_to_type(alg)
     path = Path.join(dir, alg_to_basename(alg))
-    System.cmd("ssh-keygen", ["-t", type, "-C", comment, "-f", path, "-q"], stderr_to_stdout: true)
+    {_, 0} = System.cmd("ssh-keygen", ["-t", type, "-C", comment, "-f", path, "-q", "-P", ""], stderr_to_stdout: true)
   end
 
   defp alg_to_type(:"ssh-rsa"), do: "rsa"
