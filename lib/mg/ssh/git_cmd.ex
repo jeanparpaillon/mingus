@@ -7,98 +7,105 @@ defmodule Mg.SSH.GitCmd do
   require Logger
   use GenServer
   alias Mg.SSH.Connection
+  alias Mg.SSH.GitCmd
+  alias Mg.SSH.Cli
   alias OCCI.Store
 
-  defstruct [:client, :port]
+  defstruct [:port, :cli, :cli_pid]
 
   @r_app_name Regex.compile!("^'\/*(?<app_name>[a-zA-Z0-9][a-zA-Z0-9@_-]*).git'$")
   @msg "Syntax is: git@...:<app>.git"
 
   @kind_application :"http://schemas.ogf.org/occi/platform#application"
 
-  def run(cmd, client) do
-    case check_cmd(cmd, client) do
+  def run(cmd, cli) do
+    case check_cmd(cmd, cli) do
       {:ok, cmd, path} ->
-        GenServer.start_link(__MODULE__, [cmd, path, client])
-      err -> err
+        case GenServer.start(__MODULE__, [cmd, path, cli, self()]) do
+          {:ok, pid} -> {:success, %Cli{ cli | worker: pid, worker_mod: __MODULE__ }}
+          {:error, _err} -> {:failure, @msg, cli}
+        end
+      {:error, _, msg} -> {:failure, msg, cli}
     end
   end
 
-  def send(pid, data) do
-    GenServer.cast(pid, {:data, data})
+  def data(pid, data) do
+    send(pid, {self(), {:data, data}})
   end
 
   ###
   ### Callbacks
   ###
-  def init([cmd, path, client]) do
+  def init([cmd, path, cli, cli_pid]) do
     Process.flag(:trap_exit, true)
     pid = Port.open({:spawn, "#{cmd} #{path}"}, [:binary])
-    {:ok, %Mg.SSH.GitCmd{ client: client, port: pid }}
+    {:ok, %GitCmd{ cli: cli, cli_pid: cli_pid, port: pid }}
   end
 
-  def handle_cast({:data, data}, %Mg.SSH.GitCmd{ port: pid }=s) do
+  def handle_info({cli, {:data, data}}, %GitCmd{ port: port, cli_pid: cli}=s) do
     # From SSH to Port
-    Port.command(pid, data)
+    Port.command(port, data)
     {:noreply, s}
   end
-
-  def handle_info({pid, {:data, data}}, %Mg.SSH.GitCmd{ port: pid, client: client }=s) do
+  def handle_info({port, {:data, data}}, %GitCmd{ port: port, cli: cli }=s) do
     # From Port to SSH
-    Connection.forward(client, data)
+    Connection.forward(cli, data)
     {:noreply, s}
   end
-  def handle_info({:EXIT, pid, reason}, %Mg.SSH.GitCmd{ port: pid, client: client }=s) do
+  def handle_info({:EXIT, port, reason}, %GitCmd{ port: port, cli: cli }=s) do
     status = case reason do
                :normal -> 0
                _ -> 1
              end
-    Connection.stop(client, status)
+    Connection.stop(cli, status)
     {:stop, reason, s}
+  end
+  def handle_info({:EXIT, cli_pid, reason}, %GitCmd{ cli_pid: cli_pid }=s) do
+    Logger.debug("CLI end: #{inspect reason}")
+    {:noreply, s}
   end
 
   ###
   ### Private
   ###
-  defp check_cmd(cmd, client) do
+  defp check_cmd(cmd, cli) do
     case String.split(cmd, " ") do
       [git_cmd, path] when git_cmd == "git-receive-pack" or git_cmd == "git-upload-pack" ->
-        check_path(path, git_cmd, client)
+        check_path(path, git_cmd, cli)
       _ ->
         {:error, :invalid_cmd, @msg}
     end
   end
 
-  defp check_path(path, cmd, client) do
+  defp check_path(path, cmd, cli) do
     case Regex.named_captures(@r_app_name, path) do
       %{ "app_name" => app_name }  ->
-        check_app(cmd, app_name, client)
+        check_app(cmd, app_name, cli)
       _ ->
         {:error, :invalid_path, @msg}
     end
   end
 
-  defp check_app(cmd, name, client) do
+  defp check_app(cmd, name, cli) do
     case Store.lookup([kind: @kind_application, "occi.app.name": name]) do
-      {:ok, []} ->
+      [] ->
         case cmd do
           # App do not exist
           "git-upload-pack" -> {:error, :unknown_app, @msg}
-          "git-receive-pack" -> check_create_app(cmd, name, client)
+          "git-receive-pack" -> check_create_app(cmd, name, cli)
         end
-      {:ok, [app]} -> {:ok, cmd, find_git_dir(app)}
-      {:error, err} -> {:error, err, @msg}
+      [app] -> {:ok, cmd, find_git_dir(app)}
     end
   end
 
-  def check_create_app(cmd, name, client) do
+  def check_create_app(cmd, name, cli) do
     attrs = [
       id: "apps/#{name}",
       "occi.app.name": name,
       "occi.core.summary": "Generated ..."
     ]
     app = Mg.Model.new(@kind_application, attrs)
-    case Store.create(app, client.user) do
+    case Store.create(app, cli.user) do
       {:ok, app} -> {:ok, cmd, find_git_dir(app)}
       {:error, err} -> {:error, err, @msg}
     end

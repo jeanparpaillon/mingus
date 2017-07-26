@@ -14,6 +14,7 @@ defmodule Mg.SSH do
       auth_methods: 'publickey',
       key_cb: {Mg.SSH.Keys, [host_keys: host_keys]},
       subsystems: [],
+      # shell: fn user, ip -> Mg.Shell.start(user, ip) end
       ssh_cli: {Mg.SSH.Cli, []}
     ]
     listeners = Keyword.get(opts, :listen, []) |> Enum.map(fn {addr, port} ->

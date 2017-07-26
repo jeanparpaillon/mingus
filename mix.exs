@@ -42,7 +42,7 @@ defmodule Mg.Mixfile do
 
   defp deps do
     [
-      # {:exocci, github: "erocci/exocci"},
+      # {:occi, github: "erocci/exocci"},
       {:occi, path: "/home/jean/BA_Projets/git/exocci"},
       {:earmark, "~> 1.2", only: :dev},
       {:ex_doc, "~> 0.15", only: :dev, runtime: false},
