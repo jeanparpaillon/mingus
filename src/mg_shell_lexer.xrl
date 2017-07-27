@@ -8,6 +8,7 @@ Rules.
 {INT}              : {token, {int, TokenChars}}.
 app                : {token, {atom, app}}.
 user               : {token, {atom, user}}.
+list               : {token, {atom, list}}.
 h                  : {token, {atom, help}}.
 help               : {token, {atom, help}}.
 q                  : {token, {atom, quit}}.

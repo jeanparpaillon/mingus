@@ -2,6 +2,8 @@ defmodule Mg.Shell.Parser do
   @moduledoc """
   Parser for Mg Shell
   """
+  alias OCCI.Model.Core
+  alias OCCI.Store
 
   @spec eval(data :: String.t | charlist(), s :: map) :: :noreply | {:reply, String.t} | {:stop, msg :: String.t}
   def eval(str, s) when is_binary(str), do: eval(String.to_charlist(str), s)
@@ -28,6 +30,23 @@ defmodule Mg.Shell.Parser do
 
   defp category([], nil), do: {:reply, "Unknown category..."}
   defp category([], cat), do: help(cat)
+  defp category([ {:atom, :list} ], cat), do: list(cat)
+
+  defp list(category) do
+    mod = Mg.Model.mod(category)
+    msg = """
+    Instances of #{mod.title}:
+    """
+    msg = Enum.reduce(Store.lookup(category: category), msg, fn entity, acc ->
+      id = :io_lib.format("~-40s", [Core.Entity.get(entity, :id)])
+      desc = case Core.Entity.get(entity, :title) do
+               nil -> ""
+               title -> "(#{title})"
+             end
+      acc <> " * #{id} #{desc}\n"
+    end)
+    {:reply, msg}
+  end
 
   defp help(nil) do
     msg = """
