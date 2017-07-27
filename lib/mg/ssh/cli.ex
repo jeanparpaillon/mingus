@@ -394,8 +394,8 @@ defmodule Mg.SSH.Cli do
   defp empty_buf, do: {"", "", 0}
 
   defp start_shell(%Cli{ infos: infos }=s) do
-    group = :group.start(self(), fn -> Mg.Shell.start(infos[:user], infos[:peer]) end, [echo: true])
-    %Cli{ s | worker: group, buf: empty_buf(), worker_mod: Mg.Shell }
+    shell = Mg.Shell.start_group(infos[:user], infos[:peer])
+    %Cli{ s | worker: shell, buf: empty_buf(), worker_mod: Mg.Shell }
   end
 
   defp start_shell(%Cli{}=s, cmd) do

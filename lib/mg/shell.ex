@@ -1,5 +1,16 @@
 defmodule Mg.Shell do
+  @moduledoc """
+  Mingus shell: use edlin driver for completion, history...
+  """
   require Logger
+
+  def start_group(user, ip) do
+    opts = [
+      echo: true,
+      expand_fun: &expand/1
+    ]
+    :group.start(self(), fn -> start(user, ip) end, opts)
+  end
 
   def start(user, ip) do
     spawn(fn -> init(%{ user: user, ip: ip }) end)
@@ -29,6 +40,22 @@ defmodule Mg.Shell do
   ###
   ### Private
   ###
+  defp eval(""), do: :noreply
+  defp eval("q"), do: cmd_exit()
+  defp eval("Q"), do: cmd_exit()
+  defp eval(other), do: {:reply, "Do you mean: #{other} ?"}
+
+  defp cmd_exit, do: {:stop, "BYE"}
+
+  defp prompt(user, {:undefined, {ip, _port}}), do: "#{user}@#{:inet.ntoa(ip)}> "
+  defp prompt(user, {hostname, {_ip, _port}}), do: "#{user}@#{hostname}> "
+
+  @spec expand(string) :: {found :: :yes | :no, add :: list, matches :: list}
+  defp expand(before) do
+    # TODO
+    {:no, [], []}
+  end
+
   @ctrl_c 3
 
   defp to_worker(pid, '', acc) do
@@ -41,13 +68,4 @@ defmodule Mg.Shell do
     to_worker(pid, rest, [])
   end
   defp to_worker(pid, [ c | rest ], acc), do: to_worker(pid, rest, [ c | acc ])
-
-  defp eval("q"), do: cmd_exit()
-  defp eval("Q"), do: cmd_exit()
-  defp eval(other), do: {:reply, "Do you mean: #{other} ?"}
-
-  defp cmd_exit, do: {:stop, "BYE"}
-
-  defp prompt(user, {:undefined, {ip, _port}}), do: "#{user}@#{:inet.ntoa(ip)}> "
-  defp prompt(user, {hostname, {_ip, _port}}), do: "#{user}@#{hostname}> "
 end
