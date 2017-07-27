@@ -40,7 +40,7 @@ defmodule Mg.SSH.Cli do
   def handle_ssh_msg({:ssh_cm, cm,
                       {:data, channelId, _dataTypeCode, data}},
     %Cli{ cm: cm, channel: channelId, worker: worker, worker_mod: mod }=s) do
-    mod.data(worker, data)
+    mod.data(worker, String.to_charlist(data))
     {:ok, s}
   end
   def handle_ssh_msg({:ssh_cm, cm,
@@ -88,15 +88,15 @@ defmodule Mg.SSH.Cli do
     {:ok, s}
   end
   def handle_ssh_msg({:ssh_cm, cm,
-                      {:pty, channelId, wantReply, {termName, width, height, pixWidth, pixHeight, modes}}=msg},
+                      {:pty, channelId, wantReply, {termName, width, height, pixWidth, pixHeight, modes}}},
     %Cli{ cm: cm, channel: channelId }=s) do
-    Logger.debug("<ssh> pty #{inspect msg}")
-    Connection.reply(s, :failure, wantReply)
+    Logger.debug("<ssh> pty #{termName}...")
     pty = %Pty{ term: termName,
                 width: not_zero(width, 80), height: not_zero(height, 24),
                 pixelWidth: pixWidth, pixelHeight: pixHeight,
                 modes: modes }
     set_echo(s)
+    Connection.reply(s, :success, wantReply)
     {:ok, %Cli{ s | pty: pty, buf: empty_buf() }}
   end
   def handle_ssh_msg({:ssh_cm, cm,
@@ -395,7 +395,7 @@ defmodule Mg.SSH.Cli do
 
   defp start_shell(%Cli{ infos: infos }=s) do
     group = :group.start(self(), fn -> Mg.Shell.start(infos[:user], infos[:peer]) end, [echo: true])
-    %Cli{ s | worker: group, worker_mod: Mg.Shell, buf: empty_buf() }
+    %Cli{ s | worker: group, buf: empty_buf(), worker_mod: Mg.Shell }
   end
 
   defp start_shell(%Cli{}=s, cmd) do

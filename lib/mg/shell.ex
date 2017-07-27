@@ -2,41 +2,45 @@ defmodule Mg.Shell do
   require Logger
 
   def start(user, ip) do
-    spawn(fn -> loop(user, ip) end)
+    spawn(fn -> init(%{ user: user, ip: ip }) end)
   end
 
-  def loop(user, ip) do
-    IO.write(prompt(user, ip))
+  def init(s) do
+    Process.flag(:trap_exit, true)
+    loop(s)
+  end
+
+  def loop(s) do
+    IO.write(prompt(s.user, s.ip))
     data = IO.read(:line)
     case eval(String.trim("#{data}")) do
       {:reply, ans} ->
         IO.write(ans <> "\n")
-        loop(user, ip)
+        loop(s)
       :noreply ->
-        loop(user, ip)
+        loop(s)
       {:stop, msg} ->
         IO.write(msg <> "\n")
     end
   end
 
-  def data(pid, data) do
-    to_worker(pid, data, "")
-  end
+  def data(pid, data), do: to_worker(pid, data, [])
 
   ###
   ### Private
   ###
-  defp to_worker("", pid, acc) do
-    send(pid, {self(), {:data, acc}})
+  @ctrl_c 3
+
+  defp to_worker(pid, '', acc) do
+    send(pid, {self(), {:data, Enum.reverse(acc)}})
     :ok
   end
-  defp to_worker(<< 3 >> <> rest, pid, acc) do
-    # 3 = CTRL-C
-    send(pid, {self(), {:data, acc}})
+  defp to_worker(pid, [ @ctrl_c | rest ], acc) do
+    send(pid, {self(), {:data, Enum.reverse(acc)}})
     Process.exit(pid, :interrupt)
-    to_worker(rest, pid, "")
+    to_worker(pid, rest, [])
   end
-  defp to_worker(<< c :: size(8) >> <> rest, pid, acc), do: to_worker(rest, pid, acc <> << c  >>)
+  defp to_worker(pid, [ c | rest ], acc), do: to_worker(pid, rest, [ c | acc ])
 
   defp eval("q"), do: cmd_exit()
   defp eval("Q"), do: cmd_exit()

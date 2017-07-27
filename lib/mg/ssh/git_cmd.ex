@@ -29,9 +29,7 @@ defmodule Mg.SSH.GitCmd do
     end
   end
 
-  def data(pid, data) do
-    send(pid, {self(), {:data, data}})
-  end
+  def data(pid, data), do: send(pid, {self(), {:data, data}})
 
   ###
   ### Callbacks
