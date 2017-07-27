@@ -3,6 +3,7 @@ defmodule Mg.Shell do
   Mingus shell: use edlin driver for completion, history...
   """
   require Logger
+  alias Mg.Shell.Parser
 
   def start_group(user, ip) do
     opts = [
@@ -24,14 +25,14 @@ defmodule Mg.Shell do
   def loop(s) do
     IO.write(prompt(s.user, s.ip))
     data = IO.read(:line)
-    case eval(String.trim("#{data}")) do
+    case Parser.eval(data, s) do
       {:reply, ans} ->
-        IO.write(ans <> "\n")
+        IO.write(ans)
         loop(s)
       :noreply ->
         loop(s)
       {:stop, msg} ->
-        IO.write(msg <> "\n")
+        IO.write(msg)
     end
   end
 
@@ -40,18 +41,11 @@ defmodule Mg.Shell do
   ###
   ### Private
   ###
-  defp eval(""), do: :noreply
-  defp eval("q"), do: cmd_exit()
-  defp eval("Q"), do: cmd_exit()
-  defp eval(other), do: {:reply, "Do you mean: #{other} ?"}
-
-  defp cmd_exit, do: {:stop, "BYE"}
-
   defp prompt(user, {:undefined, {ip, _port}}), do: "#{user}@#{:inet.ntoa(ip)}> "
   defp prompt(user, {hostname, {_ip, _port}}), do: "#{user}@#{hostname}> "
 
-  @spec expand(string) :: {found :: :yes | :no, add :: list, matches :: list}
-  defp expand(before) do
+  @spec expand(charlist() | String.t) :: {found :: :yes | :no, add :: list, matches :: list}
+  defp expand(_before) do
     # TODO
     {:no, [], []}
   end

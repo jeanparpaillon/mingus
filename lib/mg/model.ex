@@ -46,6 +46,7 @@ defmodule Mg.Model do
 
   kind "http://schemas.ogf.org/occi/platform#application",
     parent: OCCI.Model.Core.Resource,
+    title: "deployable application",
     attributes: [
       "occi.app.name": [
         type: OCCI.Types.String,
@@ -88,6 +89,7 @@ defmodule Mg.Model do
 
   kind "http://schemas.ogf.org/occi/auth#user",
     parent: OCCI.Model.Core.Resource,
+    title: "platform user",
     attributes: [
       "occi.auth.login": [
         type: OCCI.Types.String,

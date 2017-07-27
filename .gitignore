@@ -16,3 +16,4 @@ erl_crash.dump
 !/priv/keys/README.md
 /priv/keys/
 /examples/hello
+/src/mg_shell_lexer.erl
