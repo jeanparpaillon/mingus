@@ -20,7 +20,7 @@ defmodule Mg.Mixfile do
       docs: [
         #main: "Mg",
         logo: "priv/mingus_logo_only.png",
-        extras: [ "doc/manual.md" ]
+        extras: [ "doc/manual.md", "doc/devguide.md" ]
       ]
     ]
   end

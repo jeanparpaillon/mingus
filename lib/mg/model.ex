@@ -1,51 +1,14 @@
 defmodule Mg.Model do
+  @moduledoc """
+  Defines kinds and mixins for Mingus
+  """
   use OCCI.Model
 
-  kind "http://schemas.ogf.org/occi/infrastructure#network",
-    parent: OCCI.Model.Core.Resource,
-    attributes: [
-      "occi.network.vlan": [
-        type: OCCI.Types.Integer,
-        description: "802.1q VLAN Identifier"
-      ],
-      "occi.network.label": [
-        type: OCCI.Types.String,
-        description: "Tag based VLANs"
-      ],
-      "occi.network.state": [
-        type: [:active, :inactive, :error],
-        required: true,
-        default: :inactive,
-        mutable: false
-      ],
-      "occi.network.state.message": [
-        type: OCCI.Types.String,
-        required: false
-      ]
-    ]
-
-  mixin "http://schemas.ogf.org/occi/infrastructure/network#ipnetwork",
-    applies: [ "http://schemas.ogf.org/occi/infrastructure#network" ],
-    attributes: [
-      "occi.network.address": [
-        type: OCCI.Types.CIDR,
-        required: false,
-        description: "IP Network address"
-      ],
-      "occi.network.gateway": [
-        type: OCCI.Types.CIDR,
-        required: false,
-        description: "IP Network address"
-      ],
-      "occi.network.allocation": [
-        type: [:dynamic, :static],
-        required: false,
-        description: "IP allocation type"
-      ]
-    ]
+  extends OCCI.Model.Infrastructure
 
   kind "http://schemas.ogf.org/occi/platform#application",
     parent: OCCI.Model.Core.Resource,
+    alias: Platform.Application,
     title: "deployable application",
     attributes: [
       "occi.app.name": [
@@ -73,6 +36,7 @@ defmodule Mg.Model do
 
   kind "http://schemas.ogf.org/occi/platform#proxy",
     parent: OCCI.Model.Core.Link,
+    alias: Platform.Proxy,
     attributes: [
       "occi.app.fqdn": [
         type: OCCI.Types.String,
@@ -89,6 +53,7 @@ defmodule Mg.Model do
 
   kind "http://schemas.ogf.org/occi/auth#user",
     parent: OCCI.Model.Core.Resource,
+    alias: Auth.User,
     title: "platform user",
     attributes: [
       "occi.auth.login": [
@@ -110,6 +75,7 @@ defmodule Mg.Model do
 
   mixin "http://schemas.ogf.org/occi/auth#ssh_user",
     applies: [ "http://schemas.ogf.org/occi/auth#user" ],
+    alias: Auth.SSHUser,
     attributes: [
       "occi.auth.ssh.pub_key": [
         type: OCCI.Types.String,
