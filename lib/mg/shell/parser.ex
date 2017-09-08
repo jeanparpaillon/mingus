@@ -4,35 +4,39 @@ defmodule Mg.Shell.Parser do
   """
   alias OCCI.Model.Core
   alias OCCI.Store
+  alias Mg.Shell.Complete
 
-  @spec eval(data :: String.t | charlist(), s :: map) :: :noreply | {:reply, String.t} | {:stop, msg :: String.t}
-  def eval(str, s) when is_binary(str), do: eval(String.to_charlist(str), s)
-  def eval(str, _s) when is_list(str) do
-    case :mg_shell_lexer.string(str) do
-      {:ok, tokens, _} -> parse(tokens)
-      e -> {:reply, format_error(e)}
-    end
-  end
-
-  ###
-  ### Priv
-  ###
   @categories [
     app: :"http://schemas.ogf.org/occi/platform#application",
     user: :"http://schemas.ogf.org/occi/auth#user"
   ]
 
-  defp parse([]), do: :noreply
-  defp parse([ {:atom, :help} | _ ]), do: help(nil)
-  defp parse([ {:atom, :quit} | _ ]), do: quit()
-  defp parse([ {:atom, other} | rest ]), do: category(rest, Keyword.get(@categories, other))
-  defp parse(_), do: {:reply, "Parse error...\n"}
+  @spec eval(data :: String.t | charlist(), s :: map) :: :noreply | {:reply, String.t} | {:stop, msg :: String.t}
+  def eval(str, s) when is_binary(str), do: eval(String.to_charlist(str), s)
+  def eval(str, s) when is_list(str) do
+    case :mg_shell_lexer.string(str) do
+      {:ok, tokens, _} -> parse(tokens, s)
+      e -> {:reply, format_error(e)}
+    end
+  end
 
-  defp category([], nil), do: {:reply, "Unknown category..."}
-  defp category([], cat), do: help(cat)
-  defp category([ {:atom, :list} ], cat), do: list(cat)
+  def categories(), do: Enum.reduce(@categories, [], fn {key, id}, acc -> [ "#{key}", "#{id}" | acc ] end)
 
-  defp list(category) do
+  ###
+  ### Priv
+  ###
+  defp parse([], _), do: :noreply
+  defp parse([ {:atom, :help} | _ ], _), do: help(nil)
+  defp parse([ {:atom, :quit} | _ ], s), do: quit(s)
+  defp parse([ {:atom, other} | rest ], s), do: category(rest, Keyword.get(@categories, other), s)
+  defp parse(_, _), do: {:reply, "Parse error...\n"}
+
+  defp category([], nil, _), do: {:reply, "Unknown category..."}
+  defp category([], cat, _), do: help(cat)
+  defp category([ {:atom, :list} ], cat, s), do: list(cat, s)
+  defp category([ {:atom, :new} ], cat, s), do: new(cat, s)
+
+  defp list(category, _s) do
     mod = Mg.Model.mod(category)
     msg = """
     Instances of #{mod.title}:
@@ -46,6 +50,29 @@ defmodule Mg.Shell.Parser do
       acc <> " * #{id} #{desc}\n"
     end)
     {:reply, msg}
+  end
+
+  defp new(kind, s) do
+    IO.write("Creates new #{Mg.Model.mod(kind).title}:\n")
+
+    # TODO: example mixins, should get them from Model
+    prev = set_expand(fn b -> Complete.expand(b, {:mixins, ["mixins0", "mixins1"]}) end)
+    mixins = ask_mixins(kind, s, [])
+    _ = set_expand(prev)
+
+    str = Enum.join(mixins, ", ")
+    IO.puts("MIXINS: #{str}")
+    #entity = Mg.Model.new(kind, attrs)
+    #OCCI.Store.create(entity)
+    {:reply, "OK\n"}
+  end
+
+  defp ask_mixins(kind, s, acc) do
+    case :io.get_line("Additional mixin (ENTER when finished) ?> ") do
+      [?\n] -> acc
+      data ->
+        ask_mixins(kind, s, [ data |> to_string |> String.trim | acc ])
+    end
   end
 
   defp help(nil) do
@@ -65,10 +92,11 @@ defmodule Mg.Shell.Parser do
     {:reply, """
     help            Display this help
     list            List all instances of #{cat.title}
+    new             Create new instance of #{cat.title}
     """}
   end
 
-  defp quit, do: {:stop, "Goodbye...\n"}
+  defp quit(%{ user: user }), do: {:stop, "Goodbye #{user}...\n"}
 
   defp format_error({:error, {_, _, {:illegal, c}}, pos}) do
     "Illegal caracter (pos #{pos}): '#{c}'"
@@ -78,5 +106,12 @@ defmodule Mg.Shell.Parser do
   end
   defp format_error(e) do
     "Error: #{inspect e}\n"
+  end
+
+  defp set_expand(fun) do
+    opts = :io.getopts()
+    prev = Keyword.get(opts, :expand_fun)
+    :io.setopts([ {:expand_fun, fun} | opts ])
+    prev
   end
 end

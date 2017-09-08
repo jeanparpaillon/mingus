@@ -6,9 +6,8 @@ defmodule Mg.Providers.Ovh do
     authorize([%{method: "GET",path: "/*"}],redirect_url)
   end
   def authorize(:admin,redirect_url) do
-    authorize(for(m <- ["GET","POST","PUT","DELETE"] do
-		   %{method: m,path: "/*"})
-    end,redirect_url)
+    authorize(for(m <- ["GET", "POST", "PUT", "DELETE"], do:
+		            %{method: m,path: "/*"}), redirect_url)
   end
   def authorize(rules, redirect_url) do
     with {:ok,{{_,200,_},_,body}} <-

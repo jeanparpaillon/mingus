@@ -49,7 +49,8 @@ defmodule Mg.Mixfile do
       {:ranch, "~> 1.3"},
       {:poolboy, "~> 1.5"},
       {:poison, "~> 3.1"},
-      {:ex2ms, "~> 1.5"}
+      {:ex2ms, "~> 1.5"},
+      {:retrieval, github: "jeanparpaillon/retrieval"}
     ]
   end
 end

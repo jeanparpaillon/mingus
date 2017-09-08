@@ -8,7 +8,7 @@ defmodule Mg.Shell do
   def start_group(user, ip) do
     opts = [
       echo: true,
-      expand_fun: &expand/1
+      expand_fun: fn b -> Mg.Shell.Complete.expand(b) end
     ]
     :group.start(self(), fn -> start(user, ip) end, opts)
   end
@@ -23,9 +23,7 @@ defmodule Mg.Shell do
   end
 
   def loop(s) do
-    IO.write(prompt(s.user, s.ip))
-    data = IO.read(:line)
-    case Parser.eval(data, s) do
+    case Parser.eval(:io.get_line(prompt(s.user, s.ip)), s) do
       {:reply, ans} ->
         IO.write(ans)
         loop(s)
@@ -43,12 +41,6 @@ defmodule Mg.Shell do
   ###
   defp prompt(user, {:undefined, {ip, _port}}), do: "#{user}@#{:inet.ntoa(ip)}> "
   defp prompt(user, {hostname, {_ip, _port}}), do: "#{user}@#{hostname}> "
-
-  @spec expand(charlist() | String.t) :: {found :: :yes | :no, add :: list, matches :: list}
-  defp expand(_before) do
-    # TODO
-    {:no, [], []}
-  end
 
   @ctrl_c 3
 
