@@ -35,5 +35,5 @@ defmodule Mg.Shell.Complete do
   end
 
   defp lexicon(nil), do: Retrieval.new(@keywords ++ Parser.categories())
-  defp lexicon({:mixins, mixins}), do: Retrieval.new(mixins)
+  defp lexicon(possible), do: Retrieval.new(possible)
 end

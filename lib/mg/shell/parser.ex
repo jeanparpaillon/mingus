@@ -20,7 +20,7 @@ defmodule Mg.Shell.Parser do
     end
   end
 
-  def categories(), do: Enum.reduce(@categories, [], fn {key, id}, acc -> [ "#{key}", "#{id}" | acc ] end)
+  def categories(), do: Enum.map(@categories, fn {key, id} -> "#{key}" end)
 
   ###
   ### Priv
@@ -54,24 +54,109 @@ defmodule Mg.Shell.Parser do
 
   defp new(kind, s) do
     IO.write("Creates new #{Mg.Model.mod(kind).title}:\n")
+    applicable_mixins = Mg.Model.applicable_mixins(kind)
+    #mixins = ask([
+    #  name: :mixins,
+    #  description: "Additional mixin",
+    #  type: {OCCI.Types.Array, [type: {OCCI.Types.Mixin, Mg.Model}]},
+    #  required: false
+    #], fn b -> Complete.expand(b, {:mixins, applicable_mixins}) end)
+    specs = Mg.Model.specs([kind | []])
+    IO.puts("SPECS: #{inspect specs}")
 
-    # TODO: example mixins, should get them from Model
-    prev = set_expand(fn b -> Complete.expand(b, {:mixins, ["mixins0", "mixins1"]}) end)
-    mixins = ask_mixins(kind, s, [])
-    _ = set_expand(prev)
+    attrs = Enum.reduce(specs, %{}, fn spec, acc ->
+      case ask(spec) do
+        nil -> acc
+        value -> Map.put(acc, spec[:name], value)
+      end
+    end)
 
-    str = Enum.join(mixins, ", ")
-    IO.puts("MIXINS: #{str}")
+    #prev = set_expand(fn b -> Complete.expand(b, {:mixins, applicable_mixins}) end)
+    #mixins = ask_mixins(kind, s, [])
+    #_ = set_expand(prev)
+
+    #str = Enum.join(mixins, ", ")
+    #IO.puts("MIXINS: #{str}")
     #entity = Mg.Model.new(kind, attrs)
     #OCCI.Store.create(entity)
     {:reply, "OK\n"}
   end
 
-  defp ask_mixins(kind, s, acc) do
-    case :io.get_line("Additional mixin (ENTER when finished) ?> ") do
-      [?\n] -> acc
-      data ->
-        ask_mixins(kind, s, [ data |> to_string |> String.trim | acc ])
+  defp ask(spec, expand \\ nil) do
+    expand = complete_fun(spec[:check])
+    prev_expand = set_expand(expand)
+
+    desc = Keyword.get_lazy(spec, :description, fn ->
+      "#{Keyword.get(:name, spec)} (#{Keyword.get(:type, spec)})"
+    end)
+
+    case spec[:check] do
+      {OCCI.Types.Array, _} -> IO.puts("Press ENTER to end list")
+      _ -> nil
+    end
+
+    prompt_spec = []
+    prompt_spec = case Keyword.get(spec, :default) do
+                    nil -> prompt_spec
+                    default -> [ "default: #{default}" | prompt_spec ]
+                  end
+    prompt_spec = if Keyword.get(spec, :required, false) do
+      [ "required" | prompt_spec ]
+    else
+      prompt_spec
+    end
+    prompt_spec = case prompt_type(Keyword.get(spec, :check)) do
+                    nil -> prompt_spec
+                    type -> [ type | prompt_spec ]
+                  end
+    prompt = "#{desc}"
+    prompt = if Enum.empty?(prompt_spec) do
+      prompt
+    else
+      prompt <> " (" <> Enum.join(prompt_spec, ",") <> ")"
+    end
+    prompt = prompt <> "> "
+
+    ret = case Keyword.get(spec, :check) do
+            {OCCI.Types.Array, _} -> ask_array(prompt, [])
+            _ -> ask2(prompt, Keyword.get(spec, :required, false))
+          end
+
+    _ = set_expand(prev_expand)
+
+    ret
+  end
+
+  defp complete_fun({OCCI.Types.Enum, enum}) do
+    fn b -> Complete.expand(b, Enum.map(enum, &("#{&1}"))) end
+  end
+  defp complete_fun({OCCI.Types.Array, [type: subtype]}), do: complete_fun(subtype)
+  defp complete_fun(_), do: fn _ -> {:no, [], []} end
+
+  defp prompt_type({OCCI.Types.URI, _}), do: "uri"
+  defp prompt_type({OCCI.Types.Kind, _}), do: "kind"
+  defp prompt_type({OCCI.Types.Mixin, _}), do: "mixin"
+  defp prompt_type({OCCI.Types.Integer, _}), do: "integer"
+  defp prompt_type({OCCI.Types.Float, _}), do: "float"
+  defp prompt_type({OCCI.Types.Boolean, _}), do: "boolean"
+  defp prompt_type({OCCI.Types.Enum, values}), do: "[" <> Enum.join(values, ",") <> "]"
+  defp prompt_type({OCCI.Types.Array, [type: subtype]}), do: prompt_type(subtype)
+  defp prompt_type({OCCI.Types.CIDR, _}), do: "CIDR"
+  defp prompt_type(_), do: nil
+
+  defp ask_array(prompt, acc) do
+    data = :io.get_line(prompt)
+    case data |> to_string |> String.trim do
+      "" -> acc
+      s -> ask_array(prompt, [ data |> to_string |> String.trim | acc ])
+    end
+  end
+
+  defp ask2(prompt, required) do
+    data = :io.get_line(prompt)
+    case data |> to_string |> String.trim do
+      "" -> if required, do: ask2(prompt, required), else: nil
+      s -> s
     end
   end
 
