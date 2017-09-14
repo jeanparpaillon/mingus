@@ -55,14 +55,13 @@ defmodule Mg.Shell.Parser do
   defp new(kind, s) do
     IO.write("Creates new #{Mg.Model.mod(kind).title}:\n")
     applicable_mixins = Mg.Model.applicable_mixins(kind)
-    #mixins = ask([
-    #  name: :mixins,
-    #  description: "Additional mixin",
-    #  type: {OCCI.Types.Array, [type: {OCCI.Types.Mixin, Mg.Model}]},
-    #  required: false
-    #], fn b -> Complete.expand(b, {:mixins, applicable_mixins}) end)
+    mixins = ask([
+      name: :mixins,
+      description: "Additional mixin",
+      type: {OCCI.Types.Array, [type: {OCCI.Types.Mixin, Mg.Model}]},
+      required: false
+    ], fn b -> Complete.expand(b, applicable_mixins) end)
     specs = Mg.Model.specs([kind | []])
-    IO.puts("SPECS: #{inspect specs}")
 
     attrs = Enum.reduce(specs, %{}, fn spec, acc ->
       case ask(spec) do
@@ -71,19 +70,16 @@ defmodule Mg.Shell.Parser do
       end
     end)
 
-    #prev = set_expand(fn b -> Complete.expand(b, {:mixins, applicable_mixins}) end)
-    #mixins = ask_mixins(kind, s, [])
-    #_ = set_expand(prev)
-
-    #str = Enum.join(mixins, ", ")
-    #IO.puts("MIXINS: #{str}")
     #entity = Mg.Model.new(kind, attrs)
     #OCCI.Store.create(entity)
     {:reply, "OK\n"}
   end
 
   defp ask(spec, expand \\ nil) do
-    expand = complete_fun(spec[:check])
+    expand = case expand do
+               nil -> complete_fun(spec[:check])
+               _ -> expand
+             end
     prev_expand = set_expand(expand)
 
     desc = Keyword.get_lazy(spec, :description, fn ->
@@ -127,9 +123,7 @@ defmodule Mg.Shell.Parser do
     ret
   end
 
-  defp complete_fun({OCCI.Types.Enum, enum}) do
-    fn b -> Complete.expand(b, Enum.map(enum, &("#{&1}"))) end
-  end
+  defp complete_fun({OCCI.Types.Enum, enum}), do: fn b -> Complete.expand(b, enum) end
   defp complete_fun({OCCI.Types.Array, [type: subtype]}), do: complete_fun(subtype)
   defp complete_fun(_), do: fn _ -> {:no, [], []} end
 
