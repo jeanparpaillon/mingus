@@ -42,16 +42,18 @@ defmodule Mg.Shell do
   defp prompt(user, {:undefined, {ip, _port}}), do: "#{user}@#{:inet.ntoa(ip)}> "
   defp prompt(user, {hostname, {_ip, _port}}), do: "#{user}@#{hostname}> "
 
-  @ctrl_c 3
+  @etx 3
+  @eot 4
 
   defp to_worker(pid, '', acc) do
     send(pid, {self(), {:data, Enum.reverse(acc)}})
     :ok
   end
-  defp to_worker(pid, [ @ctrl_c | rest ], acc) do
-    send(pid, {self(), {:data, Enum.reverse(acc)}})
+  defp to_worker(pid, [ @eot | _rest ], _acc) do
     Process.exit(pid, :interrupt)
-    to_worker(pid, rest, [])
+  end
+  defp to_worker(pid, [ @etx | _rest ], _acc) do
+    send(pid, {self(), :eof})
   end
   defp to_worker(pid, [ c | rest ], acc), do: to_worker(pid, rest, [ c | acc ])
 end

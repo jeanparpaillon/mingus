@@ -11,6 +11,8 @@ defmodule Mg.Shell.Parser do
     user: :"http://schemas.ogf.org/occi/auth#user"
   ]
 
+  @etx 3
+
   @spec eval(data :: String.t | charlist(), s :: map) :: :noreply | {:reply, String.t} | {:stop, msg :: String.t}
   def eval(str, s) when is_binary(str), do: eval(String.to_charlist(str), s)
   def eval(str, s) when is_list(str) do
@@ -19,6 +21,7 @@ defmodule Mg.Shell.Parser do
       e -> {:reply, format_error(e)}
     end
   end
+  def eval({:error, :interrupted}, _), do: {:stop, "\nSee you soon...\n"}
 
   def categories(), do: Enum.map(@categories, fn {key, id} -> "#{key}" end)
 
@@ -63,16 +66,20 @@ defmodule Mg.Shell.Parser do
     ], fn b -> Complete.expand(b, applicable_mixins) end)
     specs = Mg.Model.specs([kind | []])
 
-    attrs = Enum.reduce(specs, %{}, fn spec, acc ->
-      case ask(spec) do
-        nil -> acc
-        value -> Map.put(acc, spec[:name], value)
-      end
-    end)
+    try do
+      attrs = Enum.reduce(specs, %{}, fn spec, acc ->
+        case ask(spec) do
+          nil -> acc
+          value -> Map.put(acc, spec[:name], value)
+        end
+      end)
 
-    #entity = Mg.Model.new(kind, attrs)
-    #OCCI.Store.create(entity)
-    {:reply, "OK\n"}
+      #entity = Mg.Model.new(kind, attrs)
+      #OCCI.Store.create(entity)
+      {:reply, "OK\n"}
+    rescue e in RuntimeError ->
+        {:reply, e.message}
+    end
   end
 
   defp ask(spec, expand \\ nil) do
@@ -139,18 +146,24 @@ defmodule Mg.Shell.Parser do
   defp prompt_type(_), do: nil
 
   defp ask_array(prompt, acc) do
-    data = :io.get_line(prompt)
-    case data |> to_string |> String.trim do
-      "" -> acc
-      s -> ask_array(prompt, [ data |> to_string |> String.trim | acc ])
+    case :io.get_line(prompt) do
+      {:error, :interrupted} -> raise "Canceled...\n"
+      data ->
+        case data |> to_string |> String.trim do
+          "" -> acc
+          s -> ask_array(prompt, [ data |> to_string |> String.trim | acc ])
+        end
     end
   end
 
   defp ask2(prompt, required) do
-    data = :io.get_line(prompt)
-    case data |> to_string |> String.trim do
-      "" -> if required, do: ask2(prompt, required), else: nil
-      s -> s
+    case :io.get_line(prompt) do
+      {:error, :interrupted} -> raise "Canceled...\n"
+      data ->
+        case data |> to_string |> String.trim do
+          "" -> if required, do: ask2(prompt, required), else: nil
+          s -> s
+        end
     end
   end
 
