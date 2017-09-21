@@ -25,17 +25,24 @@ defmodule Mg.Shell.Parser do
 
   def categories(), do: Enum.map(@categories, fn {key, id} -> "#{key}" end)
 
+  def category(name_or_alias) do
+    tok = :"#{name_or_alias}"
+    Keyword.get(@categories, tok, tok)
+  end
+
   ###
   ### Priv
   ###
   defp parse([], _), do: :noreply
-  defp parse([ {:atom, :help} | _ ], _), do: help(nil)
+  defp parse([ {:atom, :help} ], _), do: help(nil)
+  defp parse([ {:atom, :help}, {:atom, other} ], _), do: help(category(other))
   defp parse([ {:atom, :quit} | _ ], s), do: quit(s)
-  defp parse([ {:atom, other} | rest ], s), do: category(rest, Keyword.get(@categories, other), s)
+  defp parse([ {:atom, other} | rest ], s), do: category(rest, category(other), s)
   defp parse(_, _), do: {:reply, "Parse error...\n"}
 
   defp category([], nil, _), do: {:reply, "Unknown category..."}
   defp category([], cat, _), do: help(cat)
+  defp category([ {:atom, :help} ], cat, s), do: help(cat)
   defp category([ {:atom, :list} ], cat, s), do: list(cat, s)
   defp category([ {:atom, :new} ], cat, s), do: new(cat, s)
 
@@ -94,7 +101,7 @@ defmodule Mg.Shell.Parser do
     end)
 
     case spec[:check] do
-      {OCCI.Types.Array, _} -> IO.puts("Press ENTER to end list")
+      {OCCI.Types.Array, _} -> IO.write("Press ENTER to end list\n")
       _ -> nil
     end
 
@@ -185,6 +192,8 @@ defmodule Mg.Shell.Parser do
     help            Display this help
     list            List all instances of #{cat.title}
     new             Create new instance of #{cat.title}
+    delete <id>     Delete instance of #{cat.title}
+    get <id>        Display instance of #{cat.title}
     """}
   end
 
