@@ -34,7 +34,8 @@ defmodule Mg.Mixfile do
       ],
       applications: [
 	      :logger, :ranch,
-        :crypto, :public_key, :ssl, :ssh
+        :crypto, :public_key, :ssl, :ssh, :uuid,
+        :occi, :poolboy, :poison, :ex2ms, :retrieval
       ],
       env: []
     ]
@@ -42,15 +43,15 @@ defmodule Mg.Mixfile do
 
   defp deps do
     [
-      # {:occi, github: "erocci/exocci"},
-      {:occi, path: "/home/jean/BA_Projets/git/exocci"},
+      {:occi, github: "erocci/exocci"},
       {:earmark, "~> 1.2", only: :dev},
       {:ex_doc, "~> 0.15", only: :dev, runtime: false},
       {:ranch, "~> 1.3"},
       {:poolboy, "~> 1.5"},
       {:poison, "~> 3.1"},
       {:ex2ms, "~> 1.5"},
-      {:retrieval, github: "jeanparpaillon/retrieval"}
+      {:retrieval, github: "jeanparpaillon/retrieval"},
+      {:distillery, "~> 1.4", runtime: true}
     ]
   end
 end
