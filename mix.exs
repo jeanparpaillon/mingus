@@ -30,7 +30,8 @@ defmodule Mg.Mixfile do
       mod: { Mg.App, [] },
       registered: [
         :dns, :dns_tcp,
-        Mg.Store
+        Mg.Store,
+        Mg.Providers.Ovh
       ],
       applications: [
 	      :logger, :ranch,

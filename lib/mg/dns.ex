@@ -1,4 +1,7 @@
 defmodule Mg.DNS do
+  @moduledoc """
+  Supervise DNS listeners
+  """
   import Supervisor.Spec
   require Logger
 
