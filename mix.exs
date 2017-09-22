@@ -5,7 +5,7 @@ defmodule Mg.Mixfile do
     [
       app: :mingus,
       version: "0.1.0",
-      elixir: "~> 1.4",
+      elixir: ">= 1.3.0",
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
       deps: deps(),
