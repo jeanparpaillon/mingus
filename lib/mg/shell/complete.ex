@@ -4,7 +4,6 @@ defmodule Mg.Shell.Complete do
   """
   alias OCCI.Store
   alias OCCI.Model.Core
-  alias Mg.Shell.Parser
 
   @keywords ["help", "quit"]
   @categories ["app", "user", "host"]
@@ -25,11 +24,11 @@ defmodule Mg.Shell.Complete do
   ###
   ### Priv
   ###
-  defp exp({:quote, _, _}, _), do: {:no, "", []}
-  defp exp({:word, [], cur}, s), do: retrieve(to_string(cur), @keywords ++ @categories)
-  defp exp({:word, ['quit'], _}, _), do: {:no, "", []}
-  defp exp({:word, ['help'], cur}, _), do: retrieve(to_string(cur), @categories)
-  defp exp({:word, [ category ], cur}, _) do
+  defp exp({:quote, _, _}, _s), do: {:no, "", []}
+  defp exp({:word, [], cur}, _s), do: retrieve(to_string(cur), @keywords ++ @categories)
+  defp exp({:word, ['quit'], _}, _s), do: {:no, "", []}
+  defp exp({:word, ['help'], cur}, _s), do: retrieve(to_string(cur), @categories)
+  defp exp({:word, [ category ], cur}, _s) do
     if category?(category) do
       retrieve(to_string(cur), ['new', 'list', 'delete', 'get', 'help'])
     else

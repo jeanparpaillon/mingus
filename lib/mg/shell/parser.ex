@@ -13,8 +13,6 @@ defmodule Mg.Shell.Parser do
            [:"http://schemas.kbrw.fr/occi/infrastructure#host"]}
   ]
 
-  @etx 3
-
   @spec eval(data :: String.t | charlist(), s :: map) :: :noreply | {:reply, String.t} | {:stop, msg :: String.t}
   def eval(str, s) when is_binary(str), do: eval(String.to_charlist(str), s)
   def eval(str, s) when is_list(str) do
@@ -41,7 +39,7 @@ defmodule Mg.Shell.Parser do
     """}
   end
   defp category([], cat, _), do: help(cat)
-  defp category([ {:atom, :help} ], cat, s), do: help(cat)
+  defp category([ {:atom, :help} ], cat, _s), do: help(cat)
   defp category([ {:atom, :list} ], cat, s), do: list(cat, s)
   defp category([ {:atom, :new} ], cat, s), do: new(cat, s)
 
@@ -65,7 +63,7 @@ defmodule Mg.Shell.Parser do
     {:reply, msg}
   end
 
-  defp new({kind, mixins}, s) do
+  defp new({kind, mixins}, _s) do
     IO.write("Creates new #{Mg.Model.title(kind)}:\n")
     applicable_mixins = Mg.Model.applicable_mixins(kind)
     mixins = mixins ++ ask([
@@ -161,7 +159,7 @@ defmodule Mg.Shell.Parser do
       data ->
         case data |> to_string |> String.trim do
           "" -> acc
-          s -> ask_array(prompt, [ data |> to_string |> String.trim | acc ])
+          s -> ask_array(prompt, [ s | acc ])
         end
     end
   end
