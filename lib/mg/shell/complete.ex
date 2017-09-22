@@ -7,6 +7,7 @@ defmodule Mg.Shell.Complete do
   alias Mg.Shell.Parser
 
   @keywords ["help", "quit"]
+  @categories ["app", "user", "host"]
 
   @doc """
   Expand `before`. See erlang `edlin` module for semantic
@@ -25,9 +26,9 @@ defmodule Mg.Shell.Complete do
   ### Priv
   ###
   defp exp({:quote, _, _}, _), do: {:no, "", []}
-  defp exp({:word, [], cur}, s), do: retrieve(to_string(cur), @keywords ++ Parser.categories())
+  defp exp({:word, [], cur}, s), do: retrieve(to_string(cur), @keywords ++ @categories)
   defp exp({:word, ['quit'], _}, _), do: {:no, "", []}
-  defp exp({:word, ['help'], cur}, _), do: retrieve(to_string(cur), Parser.categories())
+  defp exp({:word, ['help'], cur}, _), do: retrieve(to_string(cur), @categories)
   defp exp({:word, [ category ], cur}, _) do
     if category?(category) do
       retrieve(to_string(cur), ['new', 'list', 'delete', 'get', 'help'])
@@ -36,13 +37,17 @@ defmodule Mg.Shell.Complete do
     end
   end
   defp exp({:word, [ category, 'get' ], cur}, _), do: retrieve(to_string(cur),
-        Store.lookup(category: Parser.category(category)) |> Enum.map(&(Core.Entity.get(&1, :id))))
+        Store.lookup(category: lookup_category(category)) |> Enum.map(&(Core.Entity.get(&1, :id))))
   defp exp({:word, [ category, 'delete' ], cur}, _), do: retrieve(to_string(cur),
-        Store.lookup(category: Parser.category(category)) |> Enum.map(&(Core.Entity.get(&1, :id))))
+        Store.lookup(category: lookup_category(category)) |> Enum.map(&(Core.Entity.get(&1, :id))))
   defp exp({:word, _, _}, _), do: {:no, "", []}
 
+  defp lookup_category('app'),    do: :"http://schemas.ogf.org/occi/platform#application"
+  defp lookup_category('user'),   do: :"http://schemas.ogf.org/occi/auth#user"
+  defp lookup_category('host'),   do: :"http://schemas.kbrw.fr/occi/infrastructure#host"
+
   defp category?(tok) do
-    Enum.member?(Parser.categories() |> Enum.map(&('#{&1}')), tok)
+    Enum.member?(@categories, "#{tok}")
   end
 
   defp retrieve(before, lexicon) do

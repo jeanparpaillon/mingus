@@ -6,13 +6,14 @@ WHITESPACE       = [\s\t\n\r]
 Rules.
 
 {INT}              : {token, {int, TokenChars}}.
+host               : {token, {atom, host}}.
 app                : {token, {atom, app}}.
 user               : {token, {atom, user}}.
 list               : {token, {atom, list}}.
 new                : {token, {atom, new}}.
-h                  : {token, {atom, help}}.
+get                : {token, {atom, get}}.
+delete             : {token, {atom, delete}}.
 help               : {token, {atom, help}}.
-q                  : {token, {atom, quit}}.
 quit               : {token, {atom, quit}}.
 {WHITESPACE}+      : skip_token.
 

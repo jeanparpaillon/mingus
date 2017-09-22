@@ -7,8 +7,10 @@ defmodule Mg.Shell.Parser do
   alias Mg.Shell.Complete
 
   @categories [
-    app: :"http://schemas.ogf.org/occi/platform#application",
-    user: :"http://schemas.ogf.org/occi/auth#user"
+    app: {:"http://schemas.ogf.org/occi/platform#application", []},
+    user: {:"http://schemas.ogf.org/occi/auth#user", []},
+    host: {:"http://schemas.ogf.org/occi/infrastructure#compute",
+           [:"http://schemas.kbrw.fr/occi/infrastructure#host"]}
   ]
 
   @etx 3
@@ -23,33 +25,34 @@ defmodule Mg.Shell.Parser do
   end
   def eval({:error, :interrupted}, _), do: {:stop, "\nSee you soon...\n"}
 
-  def categories(), do: Enum.map(@categories, fn {key, id} -> "#{key}" end)
-
-  def category(name_or_alias) do
-    tok = :"#{name_or_alias}"
-    Keyword.get(@categories, tok, tok)
-  end
-
   ###
   ### Priv
   ###
   defp parse([], _), do: :noreply
   defp parse([ {:atom, :help} ], _), do: help(nil)
-  defp parse([ {:atom, :help}, {:atom, other} ], _), do: help(category(other))
+  defp parse([ {:atom, :help}, {:atom, other} ], _), do: help(lookup_category(other))
   defp parse([ {:atom, :quit} | _ ], s), do: quit(s)
-  defp parse([ {:atom, other} | rest ], s), do: category(rest, category(other), s)
+  defp parse([ {:atom, other} | rest ], s), do: category(rest, Keyword.get(@categories, other, {:invalid, other}), s)
   defp parse(_, _), do: {:reply, "Parse error...\n"}
 
-  defp category([], nil, _), do: {:reply, "Unknown category..."}
+  defp category([], {:invalid, cat}, _) do
+    {:reply, """
+    Invalid category: #{cat}
+    """}
+  end
   defp category([], cat, _), do: help(cat)
   defp category([ {:atom, :help} ], cat, s), do: help(cat)
   defp category([ {:atom, :list} ], cat, s), do: list(cat, s)
   defp category([ {:atom, :new} ], cat, s), do: new(cat, s)
 
+  defp lookup_category(:app),  do: :"http://schemas.ogf.org/occi/platform#application"
+  defp lookup_category(:user), do: :"http://schemas.ogf.org/occi/auth#user"
+  defp lookup_category(:host), do: :"http://schemas.kbrw.fr/occi/infrastructure#host"
+  defp lookup_category(cat),   do: {:invalid, cat}
+
   defp list(category, _s) do
-    mod = Mg.Model.mod(category)
     msg = """
-    Instances of #{mod.title}:
+    Instances of #{Mg.Model.title(category)}:
     """
     msg = Enum.reduce(Store.lookup(category: category), msg, fn entity, acc ->
       id = :io_lib.format("~-40s", [Core.Entity.get(entity, :id)])
@@ -62,16 +65,16 @@ defmodule Mg.Shell.Parser do
     {:reply, msg}
   end
 
-  defp new(kind, s) do
-    IO.write("Creates new #{Mg.Model.mod(kind).title}:\n")
+  defp new({kind, mixins}, s) do
+    IO.write("Creates new #{Mg.Model.title(kind)}:\n")
     applicable_mixins = Mg.Model.applicable_mixins(kind)
-    mixins = ask([
+    mixins = mixins ++ ask([
       name: :mixins,
       description: "Additional mixin",
       type: {OCCI.Types.Array, [type: {OCCI.Types.Mixin, Mg.Model}]},
       required: false
     ], fn b -> Complete.expand(b, applicable_mixins) end)
-    specs = Mg.Model.specs([kind | []])
+    specs = Mg.Model.specs([kind | mixins])
 
     try do
       attrs = Enum.reduce(specs, %{}, fn spec, acc ->
@@ -81,8 +84,8 @@ defmodule Mg.Shell.Parser do
         end
       end)
 
-      #entity = Mg.Model.new(kind, attrs)
-      #OCCI.Store.create(entity)
+      entity = Mg.Model.new(kind, attrs, mixins)
+      OCCI.Store.create(entity)
       {:reply, "OK\n"}
     rescue e in RuntimeError ->
         {:reply, e.message}
@@ -180,20 +183,24 @@ defmodule Mg.Shell.Parser do
     quit            Quit shell
     """
     msg = Enum.reduce(@categories, msg, fn {name, catId}, acc ->
-      mod = Mg.Model.mod(catId)
       f_name = :io_lib.format("~-16s", [name])
-      acc <> "#{f_name}Manage #{mod.title}\n"
+      acc <> "#{f_name}Manage #{Mg.Model.title(catId)}\n"
     end)
     {:reply, msg}
   end
+  defp help({:invalid, cat}) do
+    {:reply, """
+    Invalid category: #{cat}
+    """}
+  end
   defp help(category) do
-    cat = Mg.Model.mod(category)
+    title = Mg.Model.title(category)
     {:reply, """
     help            Display this help
-    list            List all instances of #{cat.title}
-    new             Create new instance of #{cat.title}
-    delete <id>     Delete instance of #{cat.title}
-    get <id>        Display instance of #{cat.title}
+    list            List all #{title}
+    new             Create new #{title}
+    delete <id>     Delete #{title}
+    get <id>        Display #{title}
     """}
   end
 
