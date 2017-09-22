@@ -43,7 +43,7 @@ defmodule Mg.Mixfile do
 
   defp deps do
     [
-      {:occi, github: "erocci/exocci"},
+      {:occi, deps_occi(System.get_env("LOCAL_EXOCCI"))},
       {:earmark, "~> 1.2", only: :dev},
       {:ex_doc, "~> 0.15", only: :dev, runtime: false},
       {:ranch, "~> 1.3"},
@@ -54,4 +54,7 @@ defmodule Mg.Mixfile do
       {:distillery, "~> 1.4", runtime: true}
     ]
   end
+
+  defp deps_occi(nil), do: [github: "erocci/exocci"]
+  defp deps_occi(path), do: [path: path]
 end
