@@ -9,9 +9,7 @@ defmodule Mg.Mixfile do
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
       deps: deps(),
-      aliases: [
-        test: "test --no-start"
-      ],
+      aliases: aliases(),
 
       # Docs
       name: "Mingus",
@@ -34,11 +32,17 @@ defmodule Mg.Mixfile do
         Mg.Providers.Ovh
       ],
       applications: [
-	      :logger, :ranch,
+	      :logger, :ranch, :inets,
         :crypto, :public_key, :ssl, :ssh, :uuid,
         :occi, :poolboy, :poison, :ex2ms, :retrieval
       ],
       env: []
+    ]
+  end
+
+  defp aliases do
+    [
+      test: "test --no-start"
     ]
   end
 
