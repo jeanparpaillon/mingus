@@ -19,6 +19,11 @@ defmodule Mg.Shell do
 
   def init(s) do
     Process.flag(:trap_exit, true)
+
+    with {:ok, banner} <- File.read(Path.join([:code.priv_dir(:mingus), "issue"])) do
+      IO.write(banner)
+    end
+
     loop(s)
   end
 
