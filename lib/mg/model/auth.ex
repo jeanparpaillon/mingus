@@ -2,7 +2,7 @@ defmodule Mg.Model.Auth do
   @moduledoc """
   Defines OCCI Kinds and Mixins for Mingus authentication related stuff
   """
-  use OCCI.Model
+  use OCCI.Model, scheme: "http://schemas.ogf.org/occi/auth"
   alias OCCI.Model.Core
 
   kind "http://schemas.ogf.org/occi/auth#user",

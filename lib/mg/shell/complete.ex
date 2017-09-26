@@ -4,9 +4,9 @@ defmodule Mg.Shell.Complete do
   """
   alias OCCI.Store
   alias OCCI.Model.Core
+  alias Mg.Shell.Subject
 
   @keywords ["help", "quit"]
-  @categories ["app", "user", "host"]
 
   @doc """
   Expand `before`. See erlang `edlin` module for semantic
@@ -25,29 +25,22 @@ defmodule Mg.Shell.Complete do
   ### Priv
   ###
   defp exp({:quote, _, _}, _s), do: {:no, "", []}
-  defp exp({:word, [], cur}, _s), do: retrieve(to_string(cur), @keywords ++ @categories)
+  defp exp({:word, [], cur}, _s), do: retrieve(to_string(cur), @keywords ++ Subject.names())
   defp exp({:word, ['quit'], _}, _s), do: {:no, "", []}
-  defp exp({:word, ['help'], cur}, _s), do: retrieve(to_string(cur), @categories)
+  defp exp({:word, ['help'], cur}, _s), do: retrieve(to_string(cur), Subject.names())
   defp exp({:word, [ category ], cur}, _s) do
-    if category?(category) do
-      retrieve(to_string(cur), ['new', 'list', 'delete', 'get', 'help'])
-    else
-      {:no, "", []}
+    case Subject.get(category) do
+      {:invalid, _} ->
+        {:no, "", []}
+      subject ->
+        retrieve(to_string(cur), Subject.actions(subject) |> Enum.map(&('#{elem(&1, 0)}')))
     end
   end
-  defp exp({:word, [ category, 'get' ], cur}, _), do: retrieve(to_string(cur),
-        Store.lookup(category: lookup_category(category)) |> Enum.map(&(Core.Entity.get(&1, :id))))
-  defp exp({:word, [ category, 'delete' ], cur}, _), do: retrieve(to_string(cur),
-        Store.lookup(category: lookup_category(category)) |> Enum.map(&(Core.Entity.get(&1, :id))))
+  defp exp({:word, [ name, 'get' ], cur}, _), do: retrieve(to_string(cur),
+        Store.lookup(category: Subject.category(name)) |> Enum.map(&(Core.Entity.get(&1, :id))))
+  defp exp({:word, [ name, 'delete' ], cur}, _), do: retrieve(to_string(cur),
+        Store.lookup(category: Subject.category(name)) |> Enum.map(&(Core.Entity.get(&1, :id))))
   defp exp({:word, _, _}, _), do: {:no, "", []}
-
-  defp lookup_category('app'),    do: :"http://schemas.ogf.org/occi/platform#application"
-  defp lookup_category('user'),   do: :"http://schemas.ogf.org/occi/auth#user"
-  defp lookup_category('host'),   do: :"http://schemas.kbrw.fr/occi/infrastructure#host"
-
-  defp category?(tok) do
-    Enum.member?(@categories, "#{tok}")
-  end
 
   defp retrieve(before, lexicon) do
     trie = Retrieval.new(lexicon |> Enum.map(&("#{&1}")))

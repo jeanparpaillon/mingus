@@ -1,17 +1,32 @@
 defmodule Mg.Shell.Parser do
   @moduledoc """
   Parser for Mg Shell
+
+  Grammar:
+
+  command : 'help'
+           | 'help' subject
+           | 'quit'
+           | subject action
+           | subject action args
+           ;
+
+  subject : /* aliases categories */
+
+  action : 'new'
+          | 'get'
+          | 'delete'
+          | 'update'
+          | 'help'
+          | /* OCCI model defined action */
+          ;
+
+  args : arg ( args )* ;
   """
   alias OCCI.Model.Core
   alias OCCI.Store
   alias Mg.Shell.Complete
-
-  @categories [
-    app: {:"http://schemas.ogf.org/occi/platform#application", []},
-    user: {:"http://schemas.ogf.org/occi/auth#user", []},
-    host: {:"http://schemas.ogf.org/occi/infrastructure#compute",
-           [:"http://schemas.kbrw.fr/occi/infrastructure#host"]}
-  ]
+  alias Mg.Shell.Subject
 
   @spec eval(data :: String.t | charlist(), s :: map) :: :noreply | {:reply, String.t} | {:stop, msg :: String.t}
   def eval(str, s) when is_binary(str), do: eval(String.to_charlist(str), s)
@@ -28,9 +43,9 @@ defmodule Mg.Shell.Parser do
   ###
   defp parse([], _), do: :noreply
   defp parse([ {:atom, :help} ], _), do: help(nil)
-  defp parse([ {:atom, :help}, {:atom, other} ], _), do: help(lookup_category(other))
+  defp parse([ {:atom, :help}, {:atom, other} ], _), do: help(Subject.get(other))
   defp parse([ {:atom, :quit} | _ ], s), do: quit(s)
-  defp parse([ {:atom, other} | rest ], s), do: category(rest, Keyword.get(@categories, other, {:invalid, other}), s)
+  defp parse([ {:atom, other} | rest ], s), do: category(rest, Subject.get(other), s)
   defp parse(_, _), do: {:reply, "Parse error...\n"}
 
   defp category([], {:invalid, cat}, _) do
@@ -43,12 +58,8 @@ defmodule Mg.Shell.Parser do
   defp category([ {:atom, :list} ], cat, s), do: list(cat, s)
   defp category([ {:atom, :new} ], cat, s), do: new(cat, s)
 
-  defp lookup_category(:app),  do: :"http://schemas.ogf.org/occi/platform#application"
-  defp lookup_category(:user), do: :"http://schemas.ogf.org/occi/auth#user"
-  defp lookup_category(:host), do: :"http://schemas.kbrw.fr/occi/infrastructure#host"
-  defp lookup_category(cat),   do: {:invalid, cat}
-
-  defp list(category, _s) do
+  defp list(subject, _s) do
+    category = Subject.category(subject)
     msg = """
     Instances of #{Mg.Model.title(category)}:
     """
@@ -63,7 +74,10 @@ defmodule Mg.Shell.Parser do
     {:reply, msg}
   end
 
-  defp new({kind, mixins}, _s) do
+  defp new(subject, _s) do
+    kind = Map.get(subject, :kind)
+    mixins = Map.get(subject, :mixins, [])
+
     IO.write("Creates new #{Mg.Model.title(kind)}:\n")
     applicable_mixins = Mg.Model.applicable_mixins(kind)
     mixins = mixins ++ ask([
@@ -83,8 +97,8 @@ defmodule Mg.Shell.Parser do
       end)
 
       entity = Mg.Model.new(kind, attrs, mixins)
-      OCCI.Store.create(entity)
-      {:reply, "OK\n"}
+      entity = OCCI.Store.create(entity)
+      {:reply, "Created: #{Core.Entity.id(entity)}\n"}
     rescue e in RuntimeError ->
         {:reply, e.message}
     end
@@ -175,31 +189,29 @@ defmodule Mg.Shell.Parser do
     end
   end
 
+  defp help({:invalid, name}) do
+    msg = """
+    Invalid category: #{name}
+    """
+    {:reply, msg}
+  end
   defp help(nil) do
     msg = """
     help            Display this help
     quit            Quit shell
     """
-    msg = Enum.reduce(@categories, msg, fn {name, catId}, acc ->
+    msg = Enum.reduce(Subject.all(), msg, fn {name, subject}, acc ->
       f_name = :io_lib.format("~-16s", [name])
-      acc <> "#{f_name}Manage #{Mg.Model.title(catId)}\n"
+      acc <> "#{f_name}Manage #{Mg.Model.title(Subject.category(subject))}\n"
     end)
     {:reply, msg}
   end
-  defp help({:invalid, cat}) do
-    {:reply, """
-    Invalid category: #{cat}
-    """}
-  end
-  defp help(category) do
-    title = Mg.Model.title(category)
-    {:reply, """
-    help            Display this help
-    list            List all #{title}
-    new             Create new #{title}
-    delete <id>     Delete #{title}
-    get <id>        Display #{title}
-    """}
+  defp help(subject) do
+    msg = Enum.reduce(Subject.actions(subject), "", fn
+      {_, [desc1, desc2]}, acc -> [ acc, :io_lib.format("~-16s~s\n", [desc1, desc2]) ]
+      {name, mod}, acc -> [ acc, :io_lib.format("~-16s~s\n", ["#{name} <id>", mod.title()]) ]
+    end)
+    {:reply, msg}
   end
 
   defp quit(%{ user: user }), do: {:stop, "Goodbye #{user}...\n"}

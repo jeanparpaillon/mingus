@@ -10,6 +10,7 @@ host               : {token, {atom, host}}.
 app                : {token, {atom, app}}.
 user               : {token, {atom, user}}.
 list               : {token, {atom, list}}.
+provider           : {token, {atom, provider}}.
 new                : {token, {atom, new}}.
 get                : {token, {atom, get}}.
 delete             : {token, {atom, delete}}.

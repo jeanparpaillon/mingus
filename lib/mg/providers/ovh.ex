@@ -5,6 +5,8 @@ defmodule Mg.Providers.Ovh do
   use GenServer
   require Logger
 
+  alias OCCI.Model.Core.Resource
+
   @app %{
     name: "mingus",
     ak: "8g4hG2o8IhLWKkNd",
@@ -44,7 +46,10 @@ defmodule Mg.Providers.Ovh do
   @doc false
   def init(token) do
     Logger.info("Start OVH provider")
-    {_, s} = __auth__(token, %{ auth: false, token: token })
+    resource = OCCI.Store.create(Mg.Model.new("http://schemas.kbrw.fr/occi/mingus#provider",
+          %{ id: "ovh" },
+          ["http://schemas.kbrw.fr/occi/mingus/provider#ovh"]))
+    {_, s} = __auth__(token, %{ auth: false, token: token, resource: resource })
     {:ok, s}
   end
 
