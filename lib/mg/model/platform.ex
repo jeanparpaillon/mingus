@@ -2,10 +2,11 @@ defmodule Mg.Model.Platform do
   @moduledoc """
   Defines OCCI Kinds and Mixins for Mingus platform
   """
-  use OCCI.Model
+  use OCCI.Model,
+    scheme: "http://schemas.ogf.org/occi/platform"
   alias OCCI.Model.Core
 
-  kind "http://schemas.ogf.org/occi/platform#application",
+  kind Application,
     parent: Core.Resource,
     title: "deployable application",
     attributes: [
@@ -32,7 +33,7 @@ defmodule Mg.Model.Platform do
       ]
     ]
 
-  kind "http://schemas.ogf.org/occi/platform#proxy",
+  kind Proxy,
     parent: Core.Link,
     attributes: [
       "occi.app.fqdn": [

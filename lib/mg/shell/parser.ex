@@ -61,7 +61,7 @@ defmodule Mg.Shell.Parser do
   defp list(subject, _s) do
     category = Subject.category(subject)
     msg = """
-    Instances of #{Mg.Model.title(category)}:
+    Instances of #{category.title()}:
     """
     msg = Enum.reduce(Store.lookup(category: category), msg, fn entity, acc ->
       id = :io_lib.format("~-40s", [Core.Entity.get(entity, :id)])
@@ -78,7 +78,7 @@ defmodule Mg.Shell.Parser do
     kind = Map.get(subject, :kind)
     mixins = Map.get(subject, :mixins, [])
 
-    IO.write("Creates new #{Mg.Model.title(kind)}:\n")
+    IO.write("Creates new #{kind.title()}:\n")
     applicable_mixins = Mg.Model.applicable_mixins(kind)
     mixins = mixins ++ ask([
       name: :mixins,
@@ -96,7 +96,7 @@ defmodule Mg.Shell.Parser do
         end
       end)
 
-      entity = Mg.Model.new(kind, attrs, mixins)
+      entity = kind.new(attrs, mixins)
       entity = OCCI.Store.create(entity)
       {:reply, "Created: #{Core.Entity.id(entity)}\n"}
     rescue e in RuntimeError ->
@@ -202,7 +202,7 @@ defmodule Mg.Shell.Parser do
     """
     msg = Enum.reduce(Subject.all(), msg, fn {name, subject}, acc ->
       f_name = :io_lib.format("~-16s", [name])
-      acc <> "#{f_name}Manage #{Mg.Model.title(Subject.category(subject))}\n"
+      acc <> "#{f_name}Manage #{subject.kind.title()}\n"
     end)
     {:reply, msg}
   end

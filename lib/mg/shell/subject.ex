@@ -12,24 +12,24 @@ defmodule Mg.Shell.Subject do
   ]
   @subjects %{
     app: %{
-      kind: Mg.Model.Platform.Application.category(),
+      kind: Mg.Model.Platform.Application,
       actions: @actions
     },
     user: %{
-      kind: Mg.Model.Auth.User.category(),
+      kind: Mg.Model.Auth.User,
       actions: [
         {:new,    ["new", "Creates new instance"]},
         {:delete, ["delete <id>", "Delete instance"]}
         | @actions ]
     },
     host: %{
-      kind: OCCI.Model.Infrastructure.Compute.category(),
-      mixins: [Mg.Model.Infrastructure.Host.category()],
+      kind: OCCI.Model.Infrastructure.Compute,
+      mixins: [Mg.Model.Infrastructure.Host],
       actions: @actions
     },
     provider: %{
-      kind: Mg.Model.Provider.category(),
-      mixins: [Mg.Model.Ovh.category()],
+      kind: Mg.Model.Provider,
+      mixins: [Mg.Model.Provider.Ovh],
       actions: @actions
     }
   }

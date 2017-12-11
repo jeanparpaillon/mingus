@@ -10,13 +10,12 @@ defmodule Mg.SSH.GitCmd do
   alias Mg.SSH.GitCmd
   alias Mg.SSH.Cli
   alias OCCI.Store
+  alias Mg.Model.Platform
 
   defstruct [:port, :cli, :cli_pid]
 
   @r_app_name Regex.compile!("^'\/*(?<app_name>[a-zA-Z0-9][a-zA-Z0-9@_-]*).git'$")
   @msg "Syntax is: git@...:<app>.git"
-
-  @kind_application :"http://schemas.ogf.org/occi/platform#application"
 
   def run(cmd, cli) do
     case check_cmd(cmd, cli) do
@@ -85,7 +84,7 @@ defmodule Mg.SSH.GitCmd do
   end
 
   defp check_app(cmd, name, cli) do
-    case Store.lookup([kind: @kind_application, "occi.app.name": name]) do
+    case Store.lookup([kind: Platform.Application, "occi.app.name": name]) do
       [] ->
         case cmd do
           # App do not exist
@@ -102,7 +101,7 @@ defmodule Mg.SSH.GitCmd do
       "occi.app.name": name,
       "occi.core.summary": "Generated ..."
     ]
-    app = Mg.Model.new(@kind_application, attrs)
+    app = Platform.Application.new(attrs)
     case Store.create(app, cli.user) do
       {:ok, app} -> {:ok, cmd, find_git_dir(app)}
       {:error, err} -> {:error, err, @msg}

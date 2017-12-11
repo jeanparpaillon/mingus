@@ -1,9 +1,11 @@
 defmodule Mg.SSH.Keys do
   require Record
   require Logger
+
   alias OCCI.Store
+  alias Mg.Model.Auth
+
   @behaviour :ssh_server_key_api
-  @mixin_ssh :"http://schemas.ogf.org/occi/auth#ssh_user"
 
   def host_key(alg, opts) do
     host_keys = opts[:key_cb_private][:host_keys]
@@ -14,9 +16,12 @@ defmodule Mg.SSH.Keys do
   end
 
   def is_auth_key(key, user, _opts) do
-    case Store.lookup(category: @mixin_ssh, "occi.auth.login": "#{user}") do
-      [] -> false
+    case Store.lookup(category: Auth.SshUser, "occi.auth.login": "#{user}") do
+      [] ->
+        Logger.debug("Unknown user: #{user}")
+        false
       [user] ->
+        Logger.debug("Valid user: #{user.id}")
         case :public_key.ssh_decode(user[:attributes][:"occi.auth.ssh.pub_key"], :public_key) do
           [] -> false
           keys ->

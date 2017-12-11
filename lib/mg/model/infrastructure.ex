@@ -2,14 +2,15 @@ defmodule Mg.Model.Infrastructure do
   @moduledoc """
   Defines OCCI Kinds and Mixins for infrastructure
   """
-  use OCCI.Model
+  use OCCI.Model,
+    scheme: "http://schemas.kbrw.fr/occi/infrastructure"
   alias OCCI.Types
 
   extends OCCI.Model.Infrastructure
 
-  mixin "http://schemas.kbrw.fr/occi/infrastructure#host",
+  mixin Host,
     title: "physical host",
-    applies: ["http://schemas.ogf.org/occi/infrastructure#compute"],
+    applies: [OCCI.Model.Infrastructure.Compute],
     attributes: [
       "mg.host.location": [
         type: Types.String,

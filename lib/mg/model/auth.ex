@@ -2,10 +2,11 @@ defmodule Mg.Model.Auth do
   @moduledoc """
   Defines OCCI Kinds and Mixins for Mingus authentication related stuff
   """
-  use OCCI.Model, scheme: "http://schemas.ogf.org/occi/auth"
+  use OCCI.Model,
+    scheme: "http://schemas.ogf.org/occi/auth"
   alias OCCI.Model.Core
 
-  kind "http://schemas.ogf.org/occi/auth#user",
+  kind User,
     parent: Core.Resource,
     title: "platform user",
     attributes: [
@@ -26,8 +27,9 @@ defmodule Mg.Model.Auth do
       ]
     ]
 
-  mixin "http://schemas.ogf.org/occi/auth#ssh_user",
-    applies: [ "http://schemas.ogf.org/occi/auth#user" ],
+  mixin SshUser,
+    term: "ssh_user",
+    applies: [ User ],
     attributes: [
       "occi.auth.ssh.pub_key": [
         type: OCCI.Types.String,

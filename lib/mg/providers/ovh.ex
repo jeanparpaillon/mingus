@@ -46,9 +46,7 @@ defmodule Mg.Providers.Ovh do
   @doc false
   def init(token) do
     Logger.info("Start OVH provider")
-    resource = OCCI.Store.create(Mg.Model.new("http://schemas.kbrw.fr/occi/mingus#provider",
-          %{ id: "ovh" },
-          ["http://schemas.kbrw.fr/occi/mingus/provider#ovh"]))
+    resource = OCCI.Store.create(Mg.Model.Provider.new(%{ id: "ovh" }, [Mg.Model.Provider.Ovh]))
     {_, s} = __auth__(token, %{ auth: false, token: token, resource: resource })
     {:ok, s}
   end

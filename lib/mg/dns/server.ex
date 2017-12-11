@@ -6,8 +6,7 @@ defmodule Mg.DNS.Server do
   alias Mg.DNS
   alias Mg.Utils
 
-  @kind_application :"http://schemas.ogf.org/occi/platform#application"
-  @kind_proxy :"http://schemas.ogf.org/occi/platform#proxy"
+  alias Mg.Model.Platform
 
   def start_link(name, opts) do
     GenServer.start_link(__MODULE__, opts, name: name)
@@ -46,15 +45,15 @@ defmodule Mg.DNS.Server do
   end
 
   defp handle_query(q, {host, _port}=from, s) do
-    ctx = case Store.lookup(kind: @kind_application, "occi.app.ip": "#{:inet.ntoa(host)}") do
-            [] -> Mg.Model.new(@kind_application, [])
+    ctx = case Store.lookup(kind: Platform.Application, "occi.app.ip": "#{:inet.ntoa(host)}") do
+            [] -> Platform.Application.new([])
             [ctx] -> ctx
           end
     handle_query_in_ctx(ctx, q, from, s)
   end
 
   defp handle_query_in_ctx(ctx, q, from, s) do
-    case Store.lookup(kind: @kind_proxy, "occi.app.fqdn": "#{q.domain}", source: ctx.id) do
+    case Store.lookup(kind: Platform.Proxy, "occi.app.fqdn": "#{q.domain}", source: ctx.id) do
       [] ->
         # No proxy for the requested app
         handle_query_no_ctx(q, from, s)
@@ -64,7 +63,7 @@ defmodule Mg.DNS.Server do
   end
 
   defp handle_query_no_ctx(q, from, s) do
-    case Store.lookup(kind: @kind_application, "occi.app.fqdn": "#{q.domain}") do
+    case Store.lookup(kind: Platform.Application, "occi.app.fqdn": "#{q.domain}") do
       [] ->
         # Transfer request
         handle_query_transfer(q, from, s)

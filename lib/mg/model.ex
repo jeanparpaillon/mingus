@@ -2,7 +2,9 @@ defmodule Mg.Model do
   @moduledoc """
   Defines kinds and mixins for Mingus
   """
-  use OCCI.Model
+  use OCCI.Model,
+    scheme: "http://schemas.kbrw.fr/occi/mingus"
+
   alias OCCI.Model.Core
   alias OCCI.Types
 
@@ -10,7 +12,7 @@ defmodule Mg.Model do
   extends Mg.Model.Platform
   extends Mg.Model.Auth
 
-  kind "http://schemas.kbrw.fr/occi/mingus#provider",
+  kind Provider,
     parent: Core.Resource,
     title: "Mingus data provider",
     attributes: [
@@ -24,7 +26,7 @@ defmodule Mg.Model do
       ]
     ]
 
-  mixin "http://schemas.kbrw.fr/occi/mingus/provider#ovh",
-    applies: ["http://schemas.kbrw.fr/occi/mingus#provider"],
+  mixin Provider.Ovh,
+    applies: [Provider],
     title: "OVH data provider"
 end
