@@ -1,1 +1,1 @@
-Put here SSH public keys
+Put here SSH host keys

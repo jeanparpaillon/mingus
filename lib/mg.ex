@@ -16,7 +16,7 @@ defmodule Mg do
         supervisor(Mg.SSH,       [Application.get_env(:mingus, :ssh)]),
 	      supervisor(Mg.DNS,       [Application.get_env(:mingus, :dns)]),
         supervisor(Mg.Net,       [Application.get_env(:mingus, :net)]),
-        supervisor(Mg.Providers, [Application.get_env(:mingus, :providers, [])])
+        # supervisor(Mg.Providers, [Application.get_env(:mingus, :providers, [])])
       ], strategy: :one_for_one)
     end
   end
