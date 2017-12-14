@@ -1,11 +1,15 @@
 Definitions.
 
-INT              = [0-9]+
-WHITESPACE       = [\s\t\n\r]
+D                = [0-9]
+L                = [A-Za-z]
+P                = [/_]
+WS               = [\s\t\n\r]
+SIGN             = [+-]
 
 Rules.
 
-{INT}              : {token, {int, TokenChars}}.
+{SIGN}?{D}+        : {token, {int, list_to_integer(TokenChars)}}.
+{SIGN}?{D}+\.{D}+  : {token, {float, list_to_float(TokenChars)}}.
 host               : {token, {atom, host}}.
 app                : {token, {atom, app}}.
 user               : {token, {atom, user}}.
@@ -16,6 +20,12 @@ get                : {token, {atom, get}}.
 delete             : {token, {atom, delete}}.
 help               : {token, {atom, help}}.
 quit               : {token, {atom, quit}}.
-{WHITESPACE}+      : skip_token.
+({L}|{P})+({L}|{P}|{D}|{SIGN})* :
+                     {token, {word, TokenChars}}.
+'[^\']+'           : {token, string_(TokenChars, TokenLen)}.
+{WS}+              : skip_token.
 
 Erlang code.
+
+string_(Chars, Len) ->
+  {string, lists:sublist(Chars, 2, Len - 2)}.

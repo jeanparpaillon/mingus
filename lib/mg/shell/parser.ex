@@ -57,6 +57,8 @@ defmodule Mg.Shell.Parser do
   defp category([ {:atom, :help} ], cat, _s), do: help(cat)
   defp category([ {:atom, :list} ], cat, s), do: list(cat, s)
   defp category([ {:atom, :new} ], cat, s), do: new(cat, s)
+  defp category([ {:atom, :get}, {_, id} ], cat, s), do: get(cat, "#{id}", s)
+  defp categpry(_, cat, s), do: {:reply, "Parse error...\n"}
 
   defp list(subject, _s) do
     category = Subject.category(subject)
@@ -101,6 +103,15 @@ defmodule Mg.Shell.Parser do
       {:reply, "Created: #{Core.Entity.id(entity)}\n"}
     rescue e in RuntimeError ->
         {:reply, e.message}
+    end
+  end
+
+  defp get(_subject, id, _s) do
+    case OCCI.Store.get(id) do
+      nil -> {:reply, "NOT FOUND"}
+      entity ->
+        IO.write("#{inspect entity}\n")
+        {:reply, "OK\n"}
     end
   end
 
