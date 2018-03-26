@@ -108,7 +108,7 @@ defmodule Mg.Shell.Parser do
 
   defp get(_subject, id, _s) do
     case OCCI.Store.get(id) do
-      nil -> {:reply, "NOT FOUND"}
+      nil -> {:reply, "NOT FOUND\n"}
       entity ->
         IO.write("#{inspect entity}\n")
         {:reply, "OK\n"}
