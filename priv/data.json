@@ -1,0 +1,110 @@
+[
+  {
+    "id": "apps/app1",
+    "kind": "http://schemas.ogf.org/occi/platform#application",
+    "attributes": {
+      "occi.app.name": "app1",
+      "occi.app.description": "My super app 1",
+      "occi.app.fqdn": "myapp1.kbrwadventure.com",
+      "occi.app.ip": "10.0.0.2"
+    }
+  },
+  {
+    "id": "apps/app2",
+    "kind": "http://schemas.ogf.org/occi/platform#application",
+    "attributes": {
+      "occi.app.name": "app2",
+      "occi.core.summary": "My super app 2",
+      "occi.app.fqdn": "myapp2.kbrwadventure.com",
+      "occi.app.ip": "10.0.0.3"
+    }
+  },
+  {
+    "id": "apps/app3",
+    "kind": "http://schemas.ogf.org/occi/platform#application",
+    "attributes": {
+      "occi.app.name": "app3",
+      "occi.core.summary": "My super app 3",
+      "occi.app.fqdn": "myapp3.kbrwadventure.com",
+      "occi.app.ip": "192.168.1.74"
+    },
+    "links": [
+      "proxy/app2_proxy",
+      "proxy/gg_proxy"
+    ]
+  },
+  {
+    "id": "apps/gg_fake",
+    "kind": "http://schemas.ogf.org/occi/platform#application",
+    "attributes": {
+      "occi.app.name": "gg_fake",
+      "occi.core.summary": "Local Google",
+      "occi.app.fqdn": "gg.kbrwadventure.com",
+      "occi.app.ip": "10.0.0.10"
+    }
+  },
+  {
+    "id": "proxy/app2_proxy",
+    "kind": "http://schemas.ogf.org/occi/platform#proxy",
+    "source": { "location": "apps/app3" },
+    "target": { "location": "apps/app2" },
+    "attributes": {
+      "occi.app.fqdn": "myapp2.kbrwadventure.com",
+      "occi.app.ip": "10.1.0.2"
+    }
+  },
+  {
+    "id": "proxy/gg_proxy",
+    "kind": "http://schemas.ogf.org/occi/platform#proxy",
+    "source": { "location": "apps/app3" },
+    "target": { "location": "apps/gg_fake" },
+    "attributes": {
+      "occi.app.fqdn": "www.google.fr",
+      "occi.app.ip": "10.1.0.3"
+    }
+  },
+  {
+    "id": "users/admin",
+    "kind": "http://schemas.ogf.org/occi/auth#user",
+    "mixins": [ "http://schemas.ogf.org/occi/auth#ssh_user" ],
+    "attributes": {
+      "occi.auth.login": "admin",
+      "occi.auth.uid": 1000,
+      "occi.auth.gid": 1000,
+      "occi.auth.ssh.pub_key": "ssh-rsa XXX"
+    }
+  },
+  {
+    "id": "net/public_ipv6",
+    "kind": "http://schemas.ogf.org/occi/infrastructure#network",
+    "mixins": ["http://schemas.ogf.org/occi/infrastructure/network#ipnetwork"],
+    "attributes": {
+      "occi.network.label": "public_ipv6",
+      "occi.network.state": "active",
+      "occi.network.address": "2001:0000:0001:0a00::/56",
+      "occi.network.gateway": "2001:0000:0001:0aff:ffff:ffff:ffff:ffff"
+    }
+  },
+  {
+    "id": "net/public_ipv4",
+    "kind": "http://schemas.ogf.org/occi/infrastructure#network",
+    "mixins": ["http://schemas.ogf.org/occi/infrastructure/network#ipnetwork"],
+    "attributes": {
+      "occi.network.label": "public_ipv4",
+      "occi.network.state": "active",
+      "occi.network.address": "123.34.56.78/27",
+      "occi.network.gateway": "123.34.56.254"
+    }
+  },
+    {
+    "id": "net/local_ipv4",
+    "kind": "http://schemas.ogf.org/occi/infrastructure#network",
+    "mixins": ["http://schemas.ogf.org/occi/infrastructure/network#ipnetwork"],
+    "attributes": {
+      "occi.network.label": "local_ipv4",
+      "occi.network.state": "active",
+      "occi.network.address": "192.168.0.0/16",
+      "occi.network.gateway": "192.168.1.254"
+    }
+  }
+]
