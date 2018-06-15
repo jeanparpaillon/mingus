@@ -5,8 +5,6 @@ defmodule Mg.Providers.Ovh do
   use GenServer
   require Logger
 
-  alias OCCI.Model.Core.Resource
-
   @app %{
     name: "mingus",
     ak: "8g4hG2o8IhLWKkNd",

@@ -58,7 +58,7 @@ defmodule Mg.Shell.Parser do
   defp category([ {:atom, :list} ], cat, s), do: list(cat, s)
   defp category([ {:atom, :new} ], cat, s), do: new(cat, s)
   defp category([ {:atom, :get}, {_, id} ], cat, s), do: get(cat, "#{id}", s)
-  defp categpry(_, cat, s), do: {:reply, "Parse error...\n"}
+  defp category(_, _cat, _s), do: {:reply, "Parse error...\n"}
 
   defp list(subject, _s) do
     category = Subject.category(subject)
