@@ -8,6 +8,7 @@
 /doc
 *.ez
 /mix.lock
+/.elixir_ls
 
 # erlang
 erl_crash.dump
