@@ -1,28 +1,16 @@
-[
-  mingus: [
-    id: "kbrw",
-    ssh: [
-      gen_host_key: true,
-      listen: [
-        {"0.0.0.0", 10022}
-      ]
-    ],
-    dns: [
-      nameservers: [
-	      { {8,8,8,8}, 53 }
-      ],
-      listen: [
-	      {:udp, "0.0.0.0", 10053},
-	      {:tcp, "0.0.0.0", 10053},
-      ]
-    ],
-    net: [],
-    providers: [
-      {Mg.Providers.Ovh, :kbrw, [token: "XXX"]}
-    ]
-  ],
-  occi: [
-    model: Mg.Model,
-    backend: { OCCI.Backend.Agent, [priv_dir: "data.json"] }
+use Mix.Config
+
+config :mingus, id: "Mingus"
+
+config :mingus, dns: [
+  nameservers: [
+    { {8,8,8,8}, 53 }
   ]
 ]
+
+config :mingus, net: []
+
+config :occi, model: Mg.Model
+config :occi, backend: { OCCI.Backend.Agent, [priv_dir: "data.json"] }
+
+import_config "#{Mix.env}.exs"
