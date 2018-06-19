@@ -2,13 +2,18 @@ defmodule Mg.SSH do
   import Supervisor.Spec
   require Record
   require Logger
+
   alias Mg.Utils
 
   def start_link(opts) do
+    system_dir = system_dir()
+    gen_host_keys = Keyword.get(Application.get_env(:mingus, :ssh, []), :gen_host_key, [])
+    :ok = Mg.SSH.Keys.gen_host_keys(system_dir, gen_host_keys)
+
     cb_opts = []
     ssh_opts = [
       id_string: 'Mingus Orchestrator',
-      system_dir: system_dir(),
+      system_dir: system_dir,
       auth_methods: 'publickey',
       key_cb: {Mg.SSH.Keys, cb_opts},
       subsystems: [],
