@@ -46,16 +46,16 @@ defmodule Mg.SSH.Cli do
   ### Data events
   ###
   def handle_ssh_msg(
-        {:ssh_cm, cm, {:data, channelId, _dataTypeCode, data}},
-        %Cli{cm: cm, channel: channelId, worker: worker, worker_mod: mod} = s
+        {:ssh_cm, cm, {:data, channel_id, _data_type_code, data}},
+        %Cli{cm: cm, channel: channel_id, worker: worker, worker_mod: mod} = s
       ) do
     mod.data(worker, String.to_charlist(data))
     {:ok, s}
   end
 
   def handle_ssh_msg(
-        {:ssh_cm, cm, {:eof, channelId}},
-        %Cli{cm: cm, channel: channelId} = s
+        {:ssh_cm, cm, {:eof, channel_id}},
+        %Cli{cm: cm, channel: channel_id} = s
       ) do
     {:ok, s}
   end
@@ -64,104 +64,104 @@ defmodule Mg.SSH.Cli do
   ### Status events
   ###
   def handle_ssh_msg(
-        {:ssh_cm, cm, {:signal, channelId, _signal}},
-        %Cli{cm: cm, channel: channelId} = s
+        {:ssh_cm, cm, {:signal, channel_id, _signal}},
+        %Cli{cm: cm, channel: channel_id} = s
       ) do
     # Ignore signals according to RFC 4254 section 6.9.
     {:ok, s}
   end
 
   def handle_ssh_msg(
-        {:ssh_cm, cm, {:exit_signal, channelId, _exitSignal, exitMsg, _languageString}},
-        %Cli{cm: cm, channel: channelId} = s
+        {:ssh_cm, cm, {:exit_signal, channel_id, _exit_signal, exit_msg, _language_string}},
+        %Cli{cm: cm, channel: channel_id} = s
       ) do
-    Logger.error("Connection closed by peer: #{exitMsg}")
-    {:stop, channelId, s}
+    Logger.error("Connection closed by peer: #{exit_msg}")
+    {:stop, channel_id, s}
   end
 
   def handle_ssh_msg(
-        {:ssh_cm, cm, {:exit_status, channelId, 0}},
-        %Cli{cm: cm, channel: channelId} = s
+        {:ssh_cm, cm, {:exit_status, channel_id, 0}},
+        %Cli{cm: cm, channel: channel_id} = s
       ) do
     Logger.error("Connection closed: logout")
-    {:stop, channelId, s}
+    {:stop, channel_id, s}
   end
 
   def handle_ssh_msg(
-        {:ssh_cm, cm, {:exit_status, channelId, status}},
-        %Cli{cm: cm, channel: channelId} = s
+        {:ssh_cm, cm, {:exit_status, channel_id, status}},
+        %Cli{cm: cm, channel: channel_id} = s
       ) do
     Logger.error("Connection closed by peer: status=#{status}")
-    {:stop, channelId, s}
+    {:stop, channel_id, s}
   end
 
   ###
   ### Terminal events
   ###
   def handle_ssh_msg(
-        {:ssh_cm, cm, {:env, channelId, wantReply, var, value}},
-        %Cli{cm: cm, channel: channelId} = s
+        {:ssh_cm, cm, {:env, channel_id, want_reply, var, value}},
+        %Cli{cm: cm, channel: channel_id} = s
       ) do
     Logger.debug("<ssh> env #{var}=#{value}")
-    Connection.reply(s, :failure, wantReply)
+    Connection.reply(s, :failure, want_reply)
     {:ok, s}
   end
 
   def handle_ssh_msg(
         {:ssh_cm, cm,
-         {:pty, channelId, wantReply, {termName, width, height, pixWidth, pixHeight, modes}}},
-        %Cli{cm: cm, channel: channelId} = s
+         {:pty, channel_id, want_reply, {term_name, width, height, pix_width, pix_height, modes}}},
+        %Cli{cm: cm, channel: channel_id} = s
       ) do
-    Logger.debug("<ssh> pty #{termName}...")
+    Logger.debug("<ssh> pty #{term_name}...")
 
     pty = %Pty{
-      term: termName,
+      term: term_name,
       width: not_zero(width, 80),
       height: not_zero(height, 24),
-      pixelWidth: pixWidth,
-      pixelHeight: pixHeight,
+      pixelWidth: pix_width,
+      pixelHeight: pix_height,
       modes: modes
     }
 
     set_echo(s)
-    Connection.reply(s, :success, wantReply)
+    Connection.reply(s, :success, want_reply)
     {:ok, %Cli{s | pty: pty, buf: empty_buf()}}
   end
 
   def handle_ssh_msg(
-        {:ssh_cm, cm, {:window_change, channelId, width, height, pixWidth, pixHeight} = msg},
-        %Cli{cm: cm, channel: channelId, pty: pty0, buf: buf} = s
+        {:ssh_cm, cm, {:window_change, channel_id, width, height, pix_width, pix_height} = msg},
+        %Cli{cm: cm, channel: channel_id, pty: pty0, buf: buf} = s
       ) do
     Logger.debug("<ssh> window_change: #{inspect(msg)}")
-    pty = %Pty{pty0 | width: width, height: height, pixelWidth: pixWidth, pixelHeight: pixHeight}
+    pty = %Pty{pty0 | width: width, height: height, pixelWidth: pix_width, pixelHeight: pix_height}
     {chars, buf} = io_request({:window_change, pty0}, buf, pty, nil)
     Connection.write_chars(s, chars)
     {:ok, %Cli{pty: pty, buf: buf}}
   end
 
   def handle_ssh_msg(
-        {:ssh_cm, cm, {:shell, channelId, wantReply}},
-        %Mg.SSH.Cli{cm: cm, channel: channelId} = s
+        {:ssh_cm, cm, {:shell, channel_id, want_reply}},
+        %Mg.SSH.Cli{cm: cm, channel: channel_id} = s
       ) do
     Logger.debug("<ssh> shell")
     s = start_shell(s)
-    Connection.reply(s, :success, wantReply)
+    Connection.reply(s, :success, want_reply)
     {:ok, s}
   end
 
   def handle_ssh_msg(
-        {:ssh_cm, cm, {:exec, channelId, wantReply, cmd}},
-        %Mg.SSH.Cli{cm: cm, channel: channelId} = s
+        {:ssh_cm, cm, {:exec, channel_id, want_reply, cmd}},
+        %Mg.SSH.Cli{cm: cm, channel: channel_id} = s
       ) do
     Logger.debug("<ssh> exec: #{cmd}")
 
     case exec(s, "#{cmd}") do
       {status, s} ->
-        Connection.reply(s, status, wantReply)
+        Connection.reply(s, status, want_reply)
         {:ok, s}
 
       {status, msg, s} ->
-        Connection.reply(s, status, wantReply, "\n#{msg}\n\n")
+        Connection.reply(s, status, want_reply, "\n#{msg}\n\n")
         {:ok, s}
     end
   end
@@ -169,10 +169,10 @@ defmodule Mg.SSH.Cli do
   ###
   ### Handle other channel messages
   ###
-  def handle_msg({:ssh_channel_up, channelId, connRef}, _) do
-    infos = Connection.infos(connRef)
+  def handle_msg({:ssh_channel_up, channel_id, conn_ref}, _) do
+    infos = Connection.infos(conn_ref)
     [user] = Store.lookup(kind: @kind_user, "occi.auth.login": "#{infos.user}")
-    {:ok, %Cli{channel: channelId, cm: connRef, infos: infos, user: user}}
+    {:ok, %Cli{channel: channel_id, cm: conn_ref, infos: infos, user: user}}
   end
 
   def handle_msg({group, :set_unicode_state, _arg}, s) do
@@ -208,7 +208,7 @@ defmodule Mg.SSH.Cli do
     {:ok, %Cli{s | buf: buf}}
   end
 
-  def handle_msg({:EXIT, pid, reason}, %Cli{worker: pid, channel: channelId} = s) do
+  def handle_msg({:EXIT, pid, reason}, %Cli{worker: pid, channel: channel_id} = s) do
     Connection.exit_status(
       s,
       case reason do
@@ -218,7 +218,7 @@ defmodule Mg.SSH.Cli do
     )
 
     Connection.send_eof(s)
-    {:stop, channelId, s}
+    {:stop, channel_id, s}
   end
 
   def handle_msg(_, s) do
@@ -244,7 +244,7 @@ defmodule Mg.SSH.Cli do
   # displaying device...
   # We are *not* really unicode aware yet, we just filter away characters
   # beyond the latin1 range. We however handle the unicode binaries...
-  defp io_request({:window_change, oldTty}, buf, tty, _group), do: window_change(tty, oldTty, buf)
+  defp io_request({:window_change, old_tty}, buf, tty, _group), do: window_change(tty, old_tty, buf)
   defp io_request({:put_chars, cs}, buf, tty, _group), do: put_chars(bin_to_list(cs), buf, tty)
 
   defp io_request({:put_chars, :unicode, cs}, buf, tty, _group) do
@@ -282,8 +282,8 @@ defmodule Mg.SSH.Cli do
   defp io_request(_r, buf, _tty, _group), do: {[], buf}
 
   defp io_requests([r | rs], buf, tty, acc, group) do
-    {chars, newBuf} = io_request(r, buf, tty, group)
-    io_requests(rs, newBuf, tty, [acc | chars], group)
+    {chars, new_buf} = io_request(r, buf, tty, group)
+    io_requests(rs, new_buf, tty, [acc | chars], group)
   end
 
   defp io_requests([], buf, _tty, acc, _group), do: {acc, buf}
@@ -304,94 +304,94 @@ defmodule Mg.SSH.Cli do
   # convert input characters to buffer and to writeout
   # Note that the buf is reversed but the buftail is not
   # (this is handy; the head is always next to the cursor)
-  defp conv_buf([], accBuf, accBufTail, accWrite, col) do
-    {accBuf, accBufTail, Enum.reverse(accWrite), col}
+  defp conv_buf([], accBuf, acc_buf_tail, acc_write, col) do
+    {accBuf, acc_buf_tail, Enum.reverse(acc_write), col}
   end
 
-  defp conv_buf([13, 10 | rest], _accBuf, accBufTail, accWrite, _col) do
-    conv_buf(rest, [], tl2(accBufTail), [10, 13 | accWrite], 0)
+  defp conv_buf([13, 10 | rest], _accBuf, acc_buf_tail, acc_write, _col) do
+    conv_buf(rest, [], tl2(acc_buf_tail), [10, 13 | acc_write], 0)
   end
 
-  defp conv_buf([13 | rest], _accBuf, accBufTail, accWrite, _col) do
-    conv_buf(rest, [], tl1(accBufTail), [13 | accWrite], 0)
+  defp conv_buf([13 | rest], _accBuf, acc_buf_tail, acc_write, _col) do
+    conv_buf(rest, [], tl1(acc_buf_tail), [13 | acc_write], 0)
   end
 
-  defp conv_buf([10 | rest], _accBuf, accBufTail, accWrite, _col) do
-    conv_buf(rest, [], tl1(accBufTail), [10, 13 | accWrite], 0)
+  defp conv_buf([10 | rest], _accBuf, acc_buf_tail, acc_write, _col) do
+    conv_buf(rest, [], tl1(acc_buf_tail), [10, 13 | acc_write], 0)
   end
 
-  defp conv_buf([c | rest], accBuf, accBufTail, accWrite, col) do
-    conv_buf(rest, [c | accBuf], tl1(accBufTail), [c | accWrite], col + 1)
+  defp conv_buf([c | rest], acc_buf, acc_buf_tail, acc_write, col) do
+    conv_buf(rest, [c | acc_buf], tl1(acc_buf_tail), [c | acc_write], col + 1)
   end
 
   # put characters at current position (possibly overwriting
   # characters after current position in buffer)
-  defp put_chars(chars, {buf, bufTail, col}, _tty) do
-    {newBuf, newBufTail, writeBuf, newCol} = conv_buf(chars, buf, bufTail, [], col)
-    {writeBuf, {newBuf, newBufTail, newCol}}
+  defp put_chars(chars, {buf, buf_tail, col}, _tty) do
+    {new_buf, new_buf_tail, write_buf, new_col} = conv_buf(chars, buf, buf_tail, [], col)
+    {write_buf, {new_buf, new_buf_tail, new_col}}
   end
 
   # insert character at current position
-  defp insert_chars([], {buf, bufTail, col}, _tty) do
-    {[], {buf, bufTail, col}}
+  defp insert_chars([], {buf, buf_tail, col}, _tty) do
+    {[], {buf, buf_tail, col}}
   end
 
-  defp insert_chars(chars, {buf, bufTail, col}, tty) do
-    {newBuf, _newBufTail, writeBuf, newCol} = conv_buf(chars, buf, [], [], col)
-    m = move_cursor(newCol + length(bufTail), newCol, tty)
-    {[writeBuf, bufTail | m], {newBuf, bufTail, newCol}}
+  defp insert_chars(chars, {buf, buf_tail, col}, tty) do
+    {new_buf, _new_buf_tail, write_buf, new_col} = conv_buf(chars, buf, [], [], col)
+    m = move_cursor(new_col + length(buf_tail), new_col, tty)
+    {[write_buf, buf_tail | m], {new_buf, buf_tail, new_col}}
   end
 
   # delete characters at current position, (backwards if negative argument)
-  defp delete_chars(0, {buf, bufTail, col}, _tty), do: {[], {buf, bufTail, col}}
+  defp delete_chars(0, {buf, buf_tail, col}, _tty), do: {[], {buf, buf_tail, col}}
 
-  defp delete_chars(n, {buf, bufTail, col}, tty) when n > 0 do
-    newBufTail = nthtail(n, bufTail)
-    m = move_cursor(col + length(newBufTail) + n, col, tty)
-    {[newBufTail, List.duplicate(@space, n) | m], {buf, newBufTail, col}}
+  defp delete_chars(n, {buf, buf_tail, col}, tty) when n > 0 do
+    new_buf_tail = nthtail(n, buf_tail)
+    m = move_cursor(col + length(new_buf_tail) + n, col, tty)
+    {[new_buf_tail, List.duplicate(@space, n) | m], {buf, new_buf_tail, col}}
   end
 
   # n < 0
-  defp delete_chars(n, {buf, bufTail, col}, tty) do
-    newBuf = nthtail(-n, buf)
+  defp delete_chars(n, {buf, buf_tail, col}, tty) do
+    new_buf = nthtail(-n, buf)
 
-    newCol =
+    new_col =
       case col + n do
         v when v >= 0 -> v
         _ -> 0
       end
 
-    m1 = move_cursor(col, newCol, tty)
-    m2 = move_cursor(newCol + length(bufTail) - n, newCol, tty)
-    {[m1, bufTail, List.duplicate(@space, -n) | m2], {newBuf, bufTail, newCol}}
+    m1 = move_cursor(col, new_col, tty)
+    m2 = move_cursor(new_col + length(buf_tail) - n, new_col, tty)
+    {[m1, buf_tail, List.duplicate(@space, -n) | m2], {new_buf, buf_tail, new_col}}
   end
 
   # Window change, redraw the current line (and clear out after it
   # if current window is wider than previous)
-  defp window_change(tty, oldTty, {buf, bufTail, col}) do
-    if oldTty.width == tty.width do
+  defp window_change(tty, old_tty, {buf, buf_tail, col}) do
+    if old_tty.width == tty.width do
       {[], buf}
     else
-      m1 = move_cursor(col, 0, oldTty)
-      n = Enum.max([tty.width - oldTty.width, 0]) * 2
-      s = Enum.reverse(buf, [bufTail | List.duplicate(@space, n)])
-      m2 = move_cursor(length(buf) + length(bufTail) + n, col, tty)
-      {[m1, s | m2], {buf, bufTail, col}}
+      m1 = move_cursor(col, 0, old_tty)
+      n = Enum.max([tty.width - old_tty.width, 0]) * 2
+      s = Enum.reverse(buf, [buf_tail | List.duplicate(@space, n)])
+      m2 = move_cursor(length(buf) + length(buf_tail) + n, col, tty)
+      {[m1, s | m2], {buf, buf_tail, col}}
     end
   end
 
   # move around in buffer, respecting pad characters
-  defp step_over(0, buf, [@pad | bufTail], col), do: {[@pad | buf], bufTail, col + 1}
-  defp step_over(0, buf, bufTail, col), do: {buf, bufTail, col}
+  defp step_over(0, buf, [@pad | buf_tail], col), do: {[@pad | buf], buf_tail, col + 1}
+  defp step_over(0, buf, buf_tail, col), do: {buf, buf_tail, col}
 
-  defp step_over(n, [c | buf], bufTail, col) when n < 0 do
+  defp step_over(n, [c | buf], buf_tail, col) when n < 0 do
     n1 = if c == @pad, do: n, else: n + 1
-    step_over(n1, buf, [c | bufTail], col - 1)
+    step_over(n1, buf, [c | buf_tail], col - 1)
   end
 
-  defp step_over(n, buf, [c | bufTail], col) when n > 0 do
+  defp step_over(n, buf, [c | buf_tail], col) when n > 0 do
     n1 = if c == @pad, do: n, else: n - 1
-    step_over(n1, [c | buf], bufTail, col + 1)
+    step_over(n1, [c | buf], buf_tail, col + 1)
   end
 
   # col and row from position with given width
@@ -399,10 +399,10 @@ defmodule Mg.SSH.Cli do
   defp row(n, w), do: div(n, w)
 
   # move relative N characters
-  defp move_rel(n, {buf, bufTail, col}, tty) do
-    {newBuf, newBufTail, newCol} = step_over(n, buf, bufTail, col)
-    m = move_cursor(col, newCol, tty)
-    {m, {newBuf, newBufTail, newCol}}
+  defp move_rel(n, {buf, buf_tail, col}, tty) do
+    {new_buf, new_buf_tail, new_col} = step_over(n, buf, buf_tail, col)
+    m = move_cursor(col, new_col, tty)
+    {m, {new_buf, new_buf_tail, new_col}}
   end
 
   # give move command for tty
