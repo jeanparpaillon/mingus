@@ -34,7 +34,7 @@ defmodule Mg.SSH.Keys do
   Generate host keys
   """
   @spec gen_host_keys(Path.t, [ key_type ]) :: :ok
-  def gen_host_keys(dir, []), do: :ok
+  def gen_host_keys(_dir, []), do: :ok
   def gen_host_keys(dir, [ type | others ]) do
     gen_host_keys(dir, others)
     pub = Path.join dir, "ssh_host_#{type}_key.pub"
@@ -53,13 +53,19 @@ defmodule Mg.SSH.Keys do
 
   # JP: should use crypto / public_key modules, if better documented ;)
   defp gen_host_key(dir, :ed25519) do
+    basename = "ssh_host_ed25519_key"
+    Logger.info("Generating SSH host key: #{basename}")
     {_, 0} = System.cmd("ssh-keygen",
-      ["-t", "ed25519", "-N", "''", "-f", Path.join(dir, "ssh_host_ed25519_key")],
+      ["-t", "ed25519", "-N", "", "-f", Path.join(dir, basename)],
       stderr_to_stdout: true)
+    :ok
   end
   defp gen_host_key(dir, :rsa) do
+    basename = "ssh_host_rsa_key"
+    Logger.info("Generating SSH host key: #{basename}")
     {_, 0} = System.cmd("ssh-keygen",
-      ["-t", "rsa", "-N", "''", "-f", Path.join(dir, "ssh_host_rsa_key")],
+      ["-t", "rsa", "-N", "", "-f", Path.join(dir, basename)],
       stderr_to_stdout: true)
+    :ok
   end
 end
