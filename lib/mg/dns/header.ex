@@ -1,6 +1,6 @@
 defmodule Mg.DNS.Header do
   @moduledoc """
-  TODO: docs
+  DNS Headers struct <-> records functions
   """
 
   record = Record.extract(:dns_header, from_lib: "kernel/src/inet_dns.hrl")

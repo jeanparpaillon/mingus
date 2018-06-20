@@ -1,6 +1,6 @@
 defmodule Mg.DNS.Resource do
   @moduledoc """
-  TODO: docs
+  DNS records struct <-> records functions
   """
 
   record = Record.extract(:dns_rr, from_lib: "kernel/src/inet_dns.hrl")

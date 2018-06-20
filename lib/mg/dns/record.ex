@@ -1,6 +1,6 @@
 defmodule Mg.DNS.Record do
   @moduledoc """
-  TODO
+  Convert records to structs and vice-versa
   """
   alias Mg.DNS
 
@@ -42,7 +42,10 @@ defmodule Mg.DNS.Record do
     %{struct | header: header, qdlist: queries, anlist: answers}
   end
 
-  # TODO: docs
+  @doc """
+  Decode DNS bin data
+  """
+  @spec decode(binary) :: {:ok, t} | {:error, term}
   def decode(data) do
     case :inet_dns.decode(data) do
       {:ok, record} -> {:ok, from_record(record)}
@@ -50,7 +53,10 @@ defmodule Mg.DNS.Record do
     end
   end
 
-  # TODO: docs
+  @doc """
+  Encode struct into binary
+  """
+  @spec encode!(t) :: binary
   def encode!(struct) do
     :inet_dns.encode(to_record(struct))
   end
