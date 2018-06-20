@@ -3,6 +3,6 @@ defmodule Mg.DNS.Error do
 
   def exception(type), do: %Mg.DNS.Error{message: format(type)}
 
-  defp format(:fmt),      do: "Error decoding message"
-  defp format(_),         do: "Generic DNS error"
+  defp format(:fmt), do: "Error decoding message"
+  defp format(_), do: "Generic DNS error"
 end

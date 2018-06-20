@@ -8,11 +8,12 @@ defmodule Mg.Model do
   alias OCCI.Model.Core
   alias OCCI.Types
 
-  extends Mg.Model.Infrastructure
-  extends Mg.Model.Platform
-  extends Mg.Model.Auth
+  extends(Mg.Model.Infrastructure)
+  extends(Mg.Model.Platform)
+  extends(Mg.Model.Auth)
 
-  kind Provider,
+  kind(
+    Provider,
     parent: Core.Resource,
     title: "Mingus data provider",
     attributes: [
@@ -25,8 +26,11 @@ defmodule Mg.Model do
         description: "Human-readable explanation of the current instance state"
       ]
     ]
+  )
 
-  mixin Provider.Ovh,
+  mixin(
+    Provider.Ovh,
     applies: [Provider],
     title: "OVH data provider"
+  )
 end

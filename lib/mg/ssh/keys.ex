@@ -19,11 +19,16 @@ defmodule Mg.SSH.Keys do
   @doc false
   def is_auth_key(key, user, _opts) do
     case Store.lookup(category: Auth.SshUser, "occi.auth.login": "#{user}") do
-      [] -> false
+      [] ->
+        false
+
       [user] ->
         authorized_key = user["occi.auth.ssh.pub_key"]
+
         case :public_key.ssh_decode(authorized_key, :auth_keys) do
-          [] -> false
+          [] ->
+            false
+
           decoded_keys ->
             Enum.any?(decoded_keys, fn {k, _info} -> k == key end)
         end
@@ -33,17 +38,20 @@ defmodule Mg.SSH.Keys do
   @doc """
   Generate host keys
   """
-  @spec gen_host_keys(Path.t, [ key_type ]) :: :ok
+  @spec gen_host_keys(Path.t(), [key_type]) :: :ok
   def gen_host_keys(_dir, []), do: :ok
-  def gen_host_keys(dir, [ type | others ]) do
+
+  def gen_host_keys(dir, [type | others]) do
     gen_host_keys(dir, others)
-    pub = Path.join dir, "ssh_host_#{type}_key.pub"
-    priv = Path.join dir, "ssh_host_#{type}_key"
-    if (not File.exists?(pub)) or (not File.exists?(priv)) do
+    pub = Path.join(dir, "ssh_host_#{type}_key.pub")
+    priv = Path.join(dir, "ssh_host_#{type}_key")
+
+    if not File.exists?(pub) or not File.exists?(priv) do
       _ = File.rm(pub)
       _ = File.rm(priv)
       :ok = gen_host_key(dir, type)
     end
+
     gen_host_keys(dir, others)
   end
 
@@ -55,17 +63,28 @@ defmodule Mg.SSH.Keys do
   defp gen_host_key(dir, :ed25519) do
     basename = "ssh_host_ed25519_key"
     Logger.info("Generating SSH host key: #{basename}")
-    {_, 0} = System.cmd("ssh-keygen",
-      ["-t", "ed25519", "-N", "", "-f", Path.join(dir, basename)],
-      stderr_to_stdout: true)
+
+    {_, 0} =
+      System.cmd(
+        "ssh-keygen",
+        ["-t", "ed25519", "-N", "", "-f", Path.join(dir, basename)],
+        stderr_to_stdout: true
+      )
+
     :ok
   end
+
   defp gen_host_key(dir, :rsa) do
     basename = "ssh_host_rsa_key"
     Logger.info("Generating SSH host key: #{basename}")
-    {_, 0} = System.cmd("ssh-keygen",
-      ["-t", "rsa", "-N", "", "-f", Path.join(dir, basename)],
-      stderr_to_stdout: true)
+
+    {_, 0} =
+      System.cmd(
+        "ssh-keygen",
+        ["-t", "rsa", "-N", "", "-f", Path.join(dir, basename)],
+        stderr_to_stdout: true
+      )
+
     :ok
   end
 end

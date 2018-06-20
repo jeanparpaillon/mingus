@@ -5,9 +5,9 @@ defmodule Mg.DNS.Record do
   alias Mg.DNS
 
   record = Record.extract(:dns_rec, from_lib: "kernel/src/inet_dns.hrl")
-  keys   = :lists.map(&elem(&1, 0), record)
-  vals   = :lists.map(&{&1, [], nil}, keys)
-  pairs  = :lists.zip(keys, vals)
+  keys = :lists.map(&elem(&1, 0), record)
+  vals = :lists.map(&{&1, [], nil}, keys)
+  pairs = :lists.zip(keys, vals)
 
   defstruct record
   @type t :: %__MODULE__{}
@@ -31,6 +31,7 @@ defmodule Mg.DNS.Record do
   Converts a `:dns_rec` record into a `DNS.Record`.
   """
   def from_record(dns_rec)
+
   def from_record({:dns_rec, unquote_splicing(vals)}) do
     struct = %DNS.Record{unquote_splicing(pairs)}
 
@@ -45,7 +46,7 @@ defmodule Mg.DNS.Record do
   def decode(data) do
     case :inet_dns.decode(data) do
       {:ok, record} -> {:ok, from_record(record)}
-      {:error, _}=e -> e
+      {:error, _} = e -> e
     end
   end
 

@@ -21,10 +21,12 @@ defmodule Mg.SSH.GitCmd do
     case check_cmd(cmd, cli) do
       {:ok, cmd, path} ->
         case GenServer.start(__MODULE__, [cmd, path, cli, self()]) do
-          {:ok, pid} -> {:success, %Cli{ cli | worker: pid, worker_mod: __MODULE__ }}
+          {:ok, pid} -> {:success, %Cli{cli | worker: pid, worker_mod: __MODULE__}}
           {:error, _err} -> {:failure, @msg, cli}
         end
-      {:error, _, msg} -> {:failure, msg, cli}
+
+      {:error, _, msg} ->
+        {:failure, msg, cli}
     end
   end
 
@@ -36,29 +38,34 @@ defmodule Mg.SSH.GitCmd do
   def init([cmd, path, cli, cli_pid]) do
     Process.flag(:trap_exit, true)
     pid = Port.open({:spawn, "#{cmd} #{path}"}, [:binary])
-    {:ok, %GitCmd{ cli: cli, cli_pid: cli_pid, port: pid }}
+    {:ok, %GitCmd{cli: cli, cli_pid: cli_pid, port: pid}}
   end
 
-  def handle_info({cli, {:data, data}}, %GitCmd{ port: port, cli_pid: cli}=s) do
+  def handle_info({cli, {:data, data}}, %GitCmd{port: port, cli_pid: cli} = s) do
     # From SSH to Port
     Port.command(port, data)
     {:noreply, s}
   end
-  def handle_info({port, {:data, data}}, %GitCmd{ port: port, cli: cli }=s) do
+
+  def handle_info({port, {:data, data}}, %GitCmd{port: port, cli: cli} = s) do
     # From Port to SSH
     Connection.forward(cli, data)
     {:noreply, s}
   end
-  def handle_info({:EXIT, port, reason}, %GitCmd{ port: port, cli: cli }=s) do
-    status = case reason do
-               :normal -> 0
-               _ -> 1
-             end
+
+  def handle_info({:EXIT, port, reason}, %GitCmd{port: port, cli: cli} = s) do
+    status =
+      case reason do
+        :normal -> 0
+        _ -> 1
+      end
+
     Connection.stop(cli, status)
     {:stop, reason, s}
   end
-  def handle_info({:EXIT, cli_pid, reason}, %GitCmd{ cli_pid: cli_pid }=s) do
-    Logger.debug("CLI end: #{inspect reason}")
+
+  def handle_info({:EXIT, cli_pid, reason}, %GitCmd{cli_pid: cli_pid} = s) do
+    Logger.debug("CLI end: #{inspect(reason)}")
     {:noreply, s}
   end
 
@@ -69,6 +76,7 @@ defmodule Mg.SSH.GitCmd do
     case String.split(cmd, " ") do
       [git_cmd, path] when git_cmd == "git-receive-pack" or git_cmd == "git-upload-pack" ->
         check_path(path, git_cmd, cli)
+
       _ ->
         {:error, :invalid_cmd, @msg}
     end
@@ -76,22 +84,28 @@ defmodule Mg.SSH.GitCmd do
 
   defp check_path(path, cmd, cli) do
     case Regex.named_captures(@r_app_name, path) do
-      %{ "app_name" => app_name }  ->
+      %{"app_name" => app_name} ->
         check_app(cmd, app_name, cli)
+
       _ ->
         {:error, :invalid_path, @msg}
     end
   end
 
   defp check_app(cmd, name, cli) do
-    case Store.lookup([kind: Platform.Application, "occi.app.name": name]) do
+    case Store.lookup(kind: Platform.Application, "occi.app.name": name) do
       [] ->
         case cmd do
           # App do not exist
-          "git-upload-pack" -> {:error, :unknown_app, @msg}
-          "git-receive-pack" -> check_create_app(cmd, name, cli)
+          "git-upload-pack" ->
+            {:error, :unknown_app, @msg}
+
+          "git-receive-pack" ->
+            check_create_app(cmd, name, cli)
         end
-      [app] -> {:ok, cmd, find_git_dir(app)}
+
+      [app] ->
+        {:ok, cmd, find_git_dir(app)}
     end
   end
 
@@ -101,7 +115,9 @@ defmodule Mg.SSH.GitCmd do
       "occi.app.name": name,
       "occi.core.summary": "Generated ..."
     ]
+
     app = Platform.Application.new(attrs)
+
     case Store.create(app, cli.user) do
       {:ok, app} -> {:ok, cmd, find_git_dir(app)}
       {:error, err} -> {:error, err, @msg}
@@ -115,6 +131,7 @@ defmodule Mg.SSH.GitCmd do
     if not File.exists?(dir) do
       System.cmd("git", ["init", "--bare", dir])
     end
+
     dir
   end
 end

@@ -7,7 +7,7 @@ defmodule Mg.Shell.Subject do
 
   @actions [
     list: ["list", "List all instances"],
-    get:  ["get <id>", "Display instance"],
+    get: ["get <id>", "Display instance"],
     help: ["help", "Display this help"]
   ]
   @subjects %{
@@ -18,9 +18,10 @@ defmodule Mg.Shell.Subject do
     user: %{
       kind: Mg.Model.Auth.User,
       actions: [
-        {:new,    ["new", "Creates new instance"]},
+        {:new, ["new", "Creates new instance"]},
         {:delete, ["delete <id>", "Delete instance"]}
-        | @actions ]
+        | @actions
+      ]
     },
     host: %{
       kind: OCCI.Model.Infrastructure.Compute,
@@ -39,23 +40,28 @@ defmodule Mg.Shell.Subject do
 
   def all, do: @subjects
 
-  def names, do: Map.keys(@subjects) |> Enum.map(&("#{&1}"))
+  def names, do: Map.keys(@subjects) |> Enum.map(&"#{&1}")
 
   def category(subject) when is_map(subject) do
     case subject[:mixins] do
       nil -> subject[:kind]
-      [ mixin | _ ] -> mixin
+      [mixin | _] -> mixin
     end
   end
+
   def category(name), do: get(name) |> category()
 
   def valid?(name), do: Map.keys(@subjects) |> Enum.member?(:"#{name}")
 
   def actions(subject) when is_map(subject) do
     Map.get(subject, :actions, []) ++
-      Enum.map(Mg.Model.actions([ Map.get(subject, :kind) | Map.get(subject, :mixins, []) ]), fn {name, mod} ->
-        {name, mod}
-      end)
+      Enum.map(
+        Mg.Model.actions([Map.get(subject, :kind) | Map.get(subject, :mixins, [])]),
+        fn {name, mod} ->
+          {name, mod}
+        end
+      )
   end
+
   def actions(name), do: get(name) |> actions()
 end

@@ -10,11 +10,12 @@ defmodule Mg.Shell do
       echo: true,
       expand_fun: fn b -> Mg.Shell.Complete.expand(b) end
     ]
+
     :group.start(self(), fn -> start(user, ip) end, opts)
   end
 
   def start(user, ip) do
-    spawn(fn -> init(%{ user: user, ip: ip }) end)
+    spawn(fn -> init(%{user: user, ip: ip}) end)
   end
 
   def init(s) do
@@ -32,8 +33,10 @@ defmodule Mg.Shell do
       {:reply, ans} ->
         IO.write(ans)
         loop(s)
+
       :noreply ->
         loop(s)
+
       {:stop, msg} ->
         IO.write(msg)
     end
@@ -54,11 +57,14 @@ defmodule Mg.Shell do
     send(pid, {self(), {:data, Enum.reverse(acc)}})
     :ok
   end
-  defp to_worker(pid, [ @eot | _rest ], _acc) do
+
+  defp to_worker(pid, [@eot | _rest], _acc) do
     Process.exit(pid, :interrupt)
   end
-  defp to_worker(pid, [ @etx | _rest ], _acc) do
+
+  defp to_worker(pid, [@etx | _rest], _acc) do
     send(pid, {self(), :eof})
   end
-  defp to_worker(pid, [ c | rest ], acc), do: to_worker(pid, rest, [ c | acc ])
+
+  defp to_worker(pid, [c | rest], acc), do: to_worker(pid, rest, [c | acc])
 end

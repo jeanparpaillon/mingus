@@ -4,9 +4,11 @@ defmodule Mg.Model.Platform do
   """
   use OCCI.Model,
     scheme: "http://schemas.ogf.org/occi/platform"
+
   alias OCCI.Model.Core
 
-  kind Application,
+  kind(
+    Application,
     parent: Core.Resource,
     title: "deployable application",
     attributes: [
@@ -32,8 +34,10 @@ defmodule Mg.Model.Platform do
         description: "Application IP, when exposed as a service"
       ]
     ]
+  )
 
-  kind Proxy,
+  kind(
+    Proxy,
     parent: Core.Link,
     attributes: [
       "occi.app.fqdn": [
@@ -48,4 +52,5 @@ defmodule Mg.Model.Platform do
         description: "IP the proxy is redirecting to"
       ]
     ]
+  )
 end

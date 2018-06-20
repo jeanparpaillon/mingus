@@ -4,9 +4,11 @@ defmodule Mg.Model.Auth do
   """
   use OCCI.Model,
     scheme: "http://schemas.ogf.org/occi/auth"
+
   alias OCCI.Model.Core
 
-  kind User,
+  kind(
+    User,
     parent: Core.Resource,
     title: "platform user",
     attributes: [
@@ -26,10 +28,12 @@ defmodule Mg.Model.Auth do
         description: "User group ID"
       ]
     ]
+  )
 
-  mixin SshUser,
+  mixin(
+    SshUser,
     term: "ssh_user",
-    applies: [ User ],
+    applies: [User],
     attributes: [
       "occi.auth.ssh.pub_key": [
         type: OCCI.Types.String,
@@ -37,4 +41,5 @@ defmodule Mg.Model.Auth do
         description: "Public SSH Key"
       ]
     ]
+  )
 end

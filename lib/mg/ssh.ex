@@ -11,6 +11,7 @@ defmodule Mg.SSH do
     :ok = Mg.SSH.Keys.gen_host_keys(system_dir, gen_host_keys)
 
     cb_opts = []
+
     ssh_opts = [
       id_string: 'Mingus Orchestrator',
       system_dir: system_dir,
@@ -21,11 +22,14 @@ defmodule Mg.SSH do
       # shell: fn user, ip -> Mg.Shell.start(user, ip) end
       ssh_cli: {Mg.SSH.Cli, []}
     ]
-    listeners = Keyword.get(opts, :listen, []) |> Enum.map(fn {addr, port} ->
-      {_inet, a} = Utils.binding(addr)
-      Logger.info("<SSH> Start listener on #{addr}:#{port}")
-      worker(:ssh, [a, port, ssh_opts], function: :daemon)
-    end)
+
+    listeners =
+      Keyword.get(opts, :listen, [])
+      |> Enum.map(fn {addr, port} ->
+        {_inet, a} = Utils.binding(addr)
+        Logger.info("<SSH> Start listener on #{addr}:#{port}")
+        worker(:ssh, [a, port, ssh_opts], function: :daemon)
+      end)
 
     Supervisor.start_link(listeners, strategy: :one_for_one)
   end
@@ -50,7 +54,7 @@ defmodule Mg.SSH do
         :"ecdsa-sha2-nistp384",
         :"ecdsa-sha2-nistp521",
         :"ssh-rsa",
-        :"ssh-dss",
+        :"ssh-dss"
         # Announced by erlang 20.x but not supported: see https://bugs.erlang.org/browse/ERL-531
         # :"rsa-sha2-256",
         # :"rsa-sha2-512",

@@ -6,8 +6,8 @@ defmodule Mg.Mixfile do
       app: :mingus,
       version: "0.1.0",
       elixir: ">= 1.3.0",
-      build_embedded: Mix.env == :prod,
-      start_permanent: Mix.env == :prod,
+      build_embedded: Mix.env() == :prod,
+      start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
 
@@ -16,25 +16,36 @@ defmodule Mg.Mixfile do
       source_url: "http://github.com/kbrw/mingus",
       homepage_url: "http://github.com/kbrw/mingus",
       docs: [
-        #main: "Mg",
+        # main: "Mg",
         logo: "priv/mingus_logo_only.png",
-        extras: [ "_doc/manual.md", "_doc/devguide.md" ]
+        extras: ["_doc/manual.md", "_doc/devguide.md"]
       ]
     ]
   end
 
   def application do
     [
-      mod: { Mg.App, [] },
+      mod: {Mg.App, []},
       registered: [
-        :dns, :dns_tcp,
+        :dns,
+        :dns_tcp,
         Mg.Store,
         Mg.Providers.Ovh
       ],
       applications: [
-	      :logger, :ranch, :inets,
-        :crypto, :public_key, :ssl, :ssh, :uuid,
-        :occi, :poolboy, :poison, :ex2ms, :retrieval
+        :logger,
+        :ranch,
+        :inets,
+        :crypto,
+        :public_key,
+        :ssl,
+        :ssh,
+        :uuid,
+        :occi,
+        :poolboy,
+        :poison,
+        :ex2ms,
+        :retrieval
       ],
       env: []
     ]

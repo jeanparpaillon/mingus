@@ -22,7 +22,9 @@ defmodule Mg.Utils do
   """
   def binding(addr) do
     case :inet.getaddr('#{addr}', :inet) do
-      {:ok, a} -> {:inet, a}
+      {:ok, a} ->
+        {:inet, a}
+
       {:error, _} ->
         case :inet.getaddr('#{addr}', :inet6) do
           {:ok, a} -> {:inet6, a}

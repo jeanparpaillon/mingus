@@ -4,11 +4,13 @@ defmodule Mg.Model.Infrastructure do
   """
   use OCCI.Model,
     scheme: "http://schemas.kbrw.fr/occi/infrastructure"
+
   alias OCCI.Types
 
-  extends OCCI.Model.Infrastructure
+  extends(OCCI.Model.Infrastructure)
 
-  mixin Host,
+  mixin(
+    Host,
     title: "physical host",
     applies: [OCCI.Model.Infrastructure.Compute],
     attributes: [
@@ -18,4 +20,5 @@ defmodule Mg.Model.Infrastructure do
         description: "Physical host location (datacenter, ...)"
       ]
     ]
+  )
 end
