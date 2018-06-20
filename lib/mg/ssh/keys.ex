@@ -34,15 +34,8 @@ defmodule Mg.SSH.Keys do
         false
 
       [user] ->
-        authorized_key = user["occi.auth.ssh.pub_key"]
-
-        case :public_key.ssh_decode(authorized_key, :auth_keys) do
-          [] ->
-            false
-
-          decoded_keys ->
-            Enum.any?(decoded_keys, fn {k, _info} -> k == key end)
-        end
+        user["occi.auth.ssh.pub_key"]
+        |> is_valid_auth_key(key)
     end
   end
 
@@ -69,6 +62,15 @@ defmodule Mg.SSH.Keys do
   ###
   ### Priv
   ###
+  defp is_valid_auth_key(authorized_key, key) do
+    case :public_key.ssh_decode(authorized_key, :auth_keys) do
+      [] ->
+        false
+
+      decoded_keys ->
+        Enum.any?(decoded_keys, fn {k, _info} -> k == key end)
+    end
+  end
 
   # JP: should use crypto / public_key modules, if better documented ;)
   defp gen_host_key(dir, :ed25519) do
