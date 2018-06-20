@@ -20,17 +20,21 @@ defmodule Mg.DNS.TCPProtocol do
         :ok
 
       {:ok, data} ->
-        case :inet.peername(socket) do
-          {:ok, {from, port}} ->
-            do_query(from, port, data, socket, transport)
-
-          {:error, err} ->
-            Logger.debug("<dns> tcp error: #{inspect(err)}")
-            :ok
-        end
+        do_process(data, socket, transport)
 
       _ ->
         :ok = transport.close(socket)
+    end
+  end
+
+  defp do_process(data, socket, transport) do
+    case :inet.peername(socket) do
+      {:ok, {from, port}} ->
+        do_query(from, port, data, socket, transport)
+
+      {:error, err} ->
+        Logger.debug(fn -> "<dns> tcp error: #{inspect(err)}" end)
+        :ok
     end
   end
 

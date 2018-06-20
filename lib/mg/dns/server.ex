@@ -85,13 +85,13 @@ defmodule Mg.DNS.Server do
   end
 
   defp handle_query_transfer(q, {host, _port}, s) do
-    Logger.debug("QUERY from #{:inet.ntoa(host)} -> #{q.class}/#{q.domain}: TRANSFER")
+    Logger.debug(fn -> "QUERY from #{:inet.ntoa(host)} -> #{q.class}/#{q.domain}: TRANSFER" end)
     DNS.query(q, nameservers: s.nameservers)
   end
 
   defp handle_query_reply(res, q, {host, _port}, _s) do
     ip = res.attributes[:"occi.app.ip"]
-    Logger.debug("QUERY from #{:inet.ntoa(host)} -> #{q.class}/#{q.domain}: #{ip}")
+    Logger.debug(fn -> "QUERY from #{:inet.ntoa(host)} -> #{q.class}/#{q.domain}: #{ip}" end)
 
     %DNS.Resource{
       domain: q.domain,

@@ -49,7 +49,7 @@ defmodule Mg.SSH.Cli do
         {:ssh_cm, cm, {:data, channel_id, _data_type_code, data}},
         %Cli{cm: cm, channel: channel_id, worker: worker, worker_mod: mod} = s
       ) do
-    mod.data(worker, String.to_charlist(data))
+    _ = mod.data(worker, String.to_charlist(data))
     {:ok, s}
   end
 
@@ -102,7 +102,7 @@ defmodule Mg.SSH.Cli do
         {:ssh_cm, cm, {:env, channel_id, want_reply, var, value}},
         %Cli{cm: cm, channel: channel_id} = s
       ) do
-    Logger.debug("<ssh> env #{var}=#{value}")
+    Logger.debug(fn -> "<ssh> env #{var}=#{value}" end)
     Connection.reply(s, :failure, want_reply)
     {:ok, s}
   end
@@ -112,7 +112,7 @@ defmodule Mg.SSH.Cli do
          {:pty, channel_id, want_reply, {term_name, width, height, pix_width, pix_height, modes}}},
         %Cli{cm: cm, channel: channel_id} = s
       ) do
-    Logger.debug("<ssh> pty #{term_name}...")
+    Logger.debug(fn -> "<ssh> pty #{term_name}..." end)
 
     pty = %Pty{
       term: term_name,
@@ -132,7 +132,7 @@ defmodule Mg.SSH.Cli do
         {:ssh_cm, cm, {:window_change, channel_id, width, height, pix_width, pix_height} = msg},
         %Cli{cm: cm, channel: channel_id, pty: pty0, buf: buf} = s
       ) do
-    Logger.debug("<ssh> window_change: #{inspect(msg)}")
+    Logger.debug(fn -> "<ssh> window_change: #{inspect(msg)}" end)
     pty = %Pty{pty0 | width: width, height: height, pixelWidth: pix_width, pixelHeight: pix_height}
     {chars, buf} = io_request({:window_change, pty0}, buf, pty, nil)
     Connection.write_chars(s, chars)
@@ -153,7 +153,7 @@ defmodule Mg.SSH.Cli do
         {:ssh_cm, cm, {:exec, channel_id, want_reply, cmd}},
         %Mg.SSH.Cli{cm: cm, channel: channel_id} = s
       ) do
-    Logger.debug("<ssh> exec: #{cmd}")
+    Logger.debug(fn -> "<ssh> exec: #{cmd}" end)
 
     case exec(s, "#{cmd}") do
       {status, s} ->
@@ -474,7 +474,7 @@ defmodule Mg.SSH.Cli do
   end
 
   defp start_shell(%Cli{} = s, cmd) do
-    Logger.debug("<ssh> shell exec not implemented (#{cmd})")
+    Logger.debug(fn -> "<ssh> shell exec not implemented (#{cmd})" end)
     {:failure, s}
   end
 end

@@ -84,7 +84,7 @@ defmodule Mg.Providers.Ovh do
   defp __inventory__([host | hosts], %{token: token} = s) do
     case __req__("#{@api_servers}/#{host}", token) do
       {:ok, {200, infos}} ->
-        Logger.debug("HOST: #{host} => #{inspect(infos)}")
+        Logger.debug(fn -> "HOST: #{host} => #{inspect(infos)}" end)
         :ok
 
       _ ->
@@ -97,7 +97,7 @@ defmodule Mg.Providers.Ovh do
   defp __auth__(token, %{token: token} = s) do
     case __req__("/me", token) do
       {:ok, {200, infos}} ->
-        Logger.debug("<OVH >INFOS: #{inspect(infos)}")
+        Logger.debug(fn -> "<OVH >INFOS: #{inspect(infos)}" end)
         _ = Process.send_after(self(), :inventory, 0)
         {:ok, %{s | auth: true, token: token}}
 

@@ -65,7 +65,7 @@ defmodule Mg.SSH.GitCmd do
   end
 
   def handle_info({:EXIT, cli_pid, reason}, %GitCmd{cli_pid: cli_pid} = s) do
-    Logger.debug("CLI end: #{inspect(reason)}")
+    Logger.debug(fn -> "CLI end: #{inspect(reason)}" end)
     {:noreply, s}
   end
 
