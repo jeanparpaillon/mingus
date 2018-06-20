@@ -1,26 +1,16 @@
 defmodule Mg do
-  defmodule App do
-    use Application
+  @moduledoc """
+  Mingus entry point
+  """
+  use Application
 
-    def start(_type, _args) do
-      Mg.Sup.start_link()
-    end
-  end
-
-  defmodule Sup do
-    import Supervisor.Spec
-
-    def start_link do
-      Supervisor.start_link(
-        [
-          worker(OCCI.Store, [Application.get_env(:occi, :backend)]),
-          supervisor(Mg.SSH, [Application.get_env(:mingus, :ssh)]),
-          supervisor(Mg.DNS, [Application.get_env(:mingus, :dns)]),
-          supervisor(Mg.Net, [Application.get_env(:mingus, :net)])
-          # supervisor(Mg.Providers, [Application.get_env(:mingus, :providers, [])])
-        ],
-        strategy: :one_for_one
-      )
-    end
+  def start(_type, _args) do
+    children = [
+      {OCCI.Store, Application.get_env(:occi, :backend)},
+      {Mg.SSH, Application.get_env(:mingus, :ssh)},
+      {Mg.DNS, Application.get_env(:mingus, :dns)},
+      {Mg.Net, Application.get_env(:mingus, :net)}
+    ]
+    Supervisor.start_link(children, strategy: :one_for_one)
   end
 end

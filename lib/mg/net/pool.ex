@@ -1,4 +1,7 @@
 defmodule Mg.Net.Pool do
+  @moduledoc """
+  Network addresses structures and manipualtion functions
+  """
   require Record
   alias Mg.Net.Ip
 

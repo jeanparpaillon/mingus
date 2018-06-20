@@ -1,4 +1,7 @@
 defmodule Mg.Net.Block do
+  @moduledoc """
+  Describe a IP addresses block (v4, v6)
+  """
   require Record
   alias Mg.Net.Pool
 

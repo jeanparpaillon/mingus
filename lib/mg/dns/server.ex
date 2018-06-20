@@ -1,4 +1,7 @@
 defmodule Mg.DNS.Server do
+  @moduledoc """
+  DNS server callbacks
+  """
   require Logger
 
   use GenServer

@@ -1,9 +1,21 @@
 defmodule Mg.SSH do
+  @moduledoc """
+  SSH server
+
+  Applications are managed in different modules:
+  * Mg.Shell
+  * Mg.SSH.GitCmd
+  """
   import Supervisor.Spec
   require Record
   require Logger
 
   alias Mg.Utils
+
+  @doc false
+  def child_spec(opts) do
+    %{ id: __MODULE__, start: {__MODULE__, :start_link, [opts]}}
+  end
 
   def start_link(opts) do
     system_dir = system_dir()
