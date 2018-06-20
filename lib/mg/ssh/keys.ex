@@ -1,4 +1,9 @@
 defmodule Mg.SSH.Keys do
+  @moduledoc """
+  Handle SSH keys checking and generation
+
+  Implements ssh_server)key_api behaviour
+  """
   require Record
   require Logger
 
@@ -11,12 +16,18 @@ defmodule Mg.SSH.Keys do
 
   @behaviour :ssh_server_key_api
 
-  @doc false
+  @doc """
+  Get host private key from file (wrap :ssh_file.host_key/2)
+  """
+  @spec host_key(:ssh.pubkey_alg, :ssh_server_key_api.daemon_key_cb_options) :: {:ok, :public_key.private_key | :crypto.engine_key_ref}
   def host_key(algorithm, options) do
     :ssh_file.host_key(algorithm, options)
   end
 
-  @doc false
+  @doc """
+  Check auth key from OCCI repository
+  """
+  @spec is_auth_key(:public_key.public_key, charlist, :ssh_server_key_api.daemon_key_cb_options) ::boolean
   def is_auth_key(key, user, _opts) do
     case Store.lookup(category: Auth.SshUser, "occi.auth.login": "#{user}") do
       [] ->
