@@ -29,6 +29,7 @@ defmodule Mg.SSH.Keys do
   """
   @spec is_auth_key(:public_key.public_key, charlist, :ssh_server_key_api.daemon_key_cb_options) ::boolean
   def is_auth_key(key, user, _opts) do
+    # credo:disable-for-next-line
     case Store.lookup(category: Auth.SshUser, "occi.auth.login": "#{user}") do
       [] ->
         false
