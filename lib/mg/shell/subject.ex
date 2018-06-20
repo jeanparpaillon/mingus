@@ -40,7 +40,7 @@ defmodule Mg.Shell.Subject do
 
   def all, do: @subjects
 
-  def names, do: Map.keys(@subjects) |> Enum.map(&"#{&1}")
+  def names, do: @subjects |> Map.keys() |> Enum.map(&"#{&1}")
 
   def category(subject) when is_map(subject) do
     case subject[:mixins] do
@@ -49,9 +49,9 @@ defmodule Mg.Shell.Subject do
     end
   end
 
-  def category(name), do: get(name) |> category()
+  def category(name), do: name |> get() |> category()
 
-  def valid?(name), do: Map.keys(@subjects) |> Enum.member?(:"#{name}")
+  def valid?(name), do: @subjects |> Map.keys() |> Enum.member?(:"#{name}")
 
   def actions(subject) when is_map(subject) do
     Map.get(subject, :actions, []) ++
@@ -63,5 +63,5 @@ defmodule Mg.Shell.Subject do
       )
   end
 
-  def actions(name), do: get(name) |> actions()
+  def actions(name), do: name |> get() |> actions()
 end

@@ -138,6 +138,7 @@ defmodule Mg.Shell.Parser do
     end
   end
 
+  # credo:disable-for-lines:61
   defp ask(spec, expand \\ nil) do
     expand =
       case expand do
@@ -234,10 +235,14 @@ defmodule Mg.Shell.Parser do
         raise "Canceled...\n"
 
       data ->
-        case data |> to_string |> String.trim() do
-          "" -> if required, do: ask2(prompt, required), else: nil
-          s -> s
-        end
+        ask_maybe_required(data, prompt, required)
+    end
+  end
+
+  defp ask_maybe_required(data, prompt, required) do
+    case data |> to_string |> String.trim() do
+      "" -> if required, do: ask2(prompt, required), else: nil
+      s -> s
     end
   end
 

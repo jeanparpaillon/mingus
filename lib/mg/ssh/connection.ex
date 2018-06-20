@@ -21,7 +21,8 @@ defmodule Mg.SSH.Connection do
   end
 
   def infos(conn_ref) do
-    :ssh.connection_info(conn_ref, [:client_version, :server_version, :user, :peer, :sockname])
+    conn_ref
+    |> :ssh.connection_info([:client_version, :server_version, :user, :peer, :sockname])
     |> Enum.reduce(%{}, fn {k, v}, acc -> Map.put(acc, k, v) end)
   end
 

@@ -39,7 +39,7 @@ defmodule Mg.Shell.Complete do
         {:no, "", []}
 
       subject ->
-        retrieve(to_string(cur), Subject.actions(subject) |> Enum.map(&'#{elem(&1, 0)}'))
+        retrieve(to_string(cur), subject |> Subject.actions() |> Enum.map(&'#{elem(&1, 0)}'))
     end
   end
 

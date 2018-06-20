@@ -36,7 +36,8 @@ defmodule Mg.SSH do
     ]
 
     listeners =
-      Keyword.get(opts, :listen, [])
+      opts
+      |> Keyword.get(:listen, [])
       |> Enum.map(fn {addr, port} ->
         {_inet, a} = Utils.binding(addr)
         Logger.info("<SSH> Start listener on #{addr}:#{port}")

@@ -22,10 +22,7 @@ defmodule Mg.DNS.TCPProtocol do
       {:ok, data} ->
         case :inet.peername(socket) do
           {:ok, {from, port}} ->
-            case GenServer.call(:dns, {:query, from, port, data}) do
-              {:ok, ans} -> transport.send(socket, ans)
-              {:error, _err} -> :ok
-            end
+            do_query(from, port, data, socket, transport)
 
           {:error, err} ->
             Logger.debug("<dns> tcp error: #{inspect(err)}")
@@ -34,6 +31,13 @@ defmodule Mg.DNS.TCPProtocol do
 
       _ ->
         :ok = transport.close(socket)
+    end
+  end
+
+  defp do_query(from, port, data, socket, transport) do
+    case GenServer.call(:dns, {:query, from, port, data}) do
+      {:ok, ans} -> transport.send(socket, ans)
+      {:error, _err} -> :ok
     end
   end
 end

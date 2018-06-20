@@ -142,7 +142,8 @@ defmodule Mg.Net.Manager do
     ret =
       pool_ids
       |> Enum.reduce([], fn id, acc ->
-        :ets.match(s.blocks, {:_, :"$1", id, :lease})
+        s.blocks
+        |> :ets.match({:_, :"$1", id, :lease})
         |> Enum.reduce(acc, fn [block_id], acc2 -> [block_id | acc2] end)
       end)
 
@@ -151,7 +152,8 @@ defmodule Mg.Net.Manager do
 
   def handle_call({:book, block_id}, _from, s0) do
     {ret, s} =
-      do_pool_ids(s0)
+      s0
+      |> do_pool_ids()
       |> Enum.reduce_while({false, s0}, fn
         _, {true, s} ->
           # Found, we stop
@@ -259,7 +261,8 @@ defmodule Mg.Net.Manager do
   end
 
   defp do_release(block(id: block_id, status: :partial) = b, s) do
-    Ip.children(block_id)
+    block_id
+    |> Ip.children()
     |> Tuple.to_list()
     |> Enum.all?(fn id ->
       # true if all child blocks are free

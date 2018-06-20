@@ -14,7 +14,8 @@ defmodule Mg.DNS do
 
   def start_link(opts) do
     servers =
-      Keyword.get(opts, :listen, [])
+      opts
+      |> Keyword.get(:listen, [])
       |> Enum.map(fn {family, addr, port} ->
         mod =
           case family do
