@@ -10,6 +10,11 @@ defmodule Mg.Mixfile do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
+      dialyzer: [plt_add_deps: :project],
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: cli_env_for(:test, ~w(
+            coveralls coveralls.detail coverall.html coveralls.json coveralls.post
+          )),
 
       # Docs
       name: "Mingus",
@@ -25,7 +30,7 @@ defmodule Mg.Mixfile do
 
   def application do
     [
-      mod: {Mg.App, []},
+      mod: {Mg, []},
       registered: [
         :dns,
         :dns_tcp,
@@ -59,15 +64,27 @@ defmodule Mg.Mixfile do
 
   defp deps do
     [
-      {:occi, github: "erocci/exocci"},
-      {:earmark, "~> 1.2", only: :dev},
+      # Dev and test
+      {:credo, "~> 0.9", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.0.0-rc.2", only: [:dev, :test], runtime: false},
+      # Dev only
+      {:earmark, "~> 1.2", only: :dev, runtime: false},
       {:ex_doc, "~> 0.15", only: :dev, runtime: false},
+      # Test only
+      {:excoveralls, "~> 0.9", only: :test, runtime: false},
+      # All envs
+      {:occi, github: "erocci/exocci"},
       {:ranch, "~> 1.3"},
       {:poolboy, "~> 1.5"},
       {:poison, "~> 3.1"},
       {:ex2ms, "~> 1.5"},
       {:retrieval, github: "jeanparpaillon/retrieval"},
-      {:distillery, "~> 1.4", runtime: true}
+      {:distillery, "~> 1.4", runtime: false}
     ]
+  end
+
+  defp cli_env_for(env, tasks) do
+    tasks
+    |> Enum.reduce([], &Keyword.put(&2, :"#{&1}", env))
   end
 end
