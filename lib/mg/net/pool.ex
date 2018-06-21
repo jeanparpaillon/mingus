@@ -3,17 +3,18 @@ defmodule Mg.Net.Pool do
   Network addresses structures and manipualtion functions
   """
   require Record
+
   alias Mg.Net.Ip
 
   Record.defrecord(:pool, id: nil)
 
   @type id :: {:inet.ip_address(), integer}
-  @type t :: Record.record(:pool, id: id)
+  @type t :: record(:pool, id: id)
 
   @doc """
   Create new pool from address + mask or CIDR string
   """
-  @spec create({:inet.ip_address(), integer} | String.t()) :: Pool.t()
+  @spec create({:inet.ip_address, integer} | String.t) :: t
   def create({{_, _, _, _} = addr, mask}), do: new({addr, mask})
   def create({{_, _, _, _, _, _, _, _} = addr, mask}), do: new({addr, mask})
 

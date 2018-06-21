@@ -40,7 +40,7 @@ defmodule Mg.Net.Ip do
       {{255,255,255,255}, 23}
   """
   @spec broadcast({:inet.ip4_address(), integer | :inet.ip4_address()}) ::
-          {:inet.ip_address4(), integer}
+          {:inet.ip4_address(), integer}
   def broadcast({addr, prefix}) when is_integer(prefix) do
     broadcast({addr, mask(prefix, tuple_size(addr))})
   end

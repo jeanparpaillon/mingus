@@ -9,5 +9,5 @@ defmodule Mg.Net.Block do
 
   @type id :: {:inet.ip_address(), integer}
   @type status :: :free | :partial | :lease | :reserved
-  @type t :: Record.record(:block, id: id, pool: Pool.id(), status: status)
+  @type t :: record(:block, id: id, pool: Pool.id(), status: status)
 end
