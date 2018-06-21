@@ -37,20 +37,14 @@ defmodule Mg.Mixfile do
         Mg.Store,
         Mg.Providers.Ovh
       ],
-      applications: [
+      extra_applications: [
         :logger,
-        :ranch,
         :inets,
         :crypto,
         :public_key,
         :ssl,
         :ssh,
-        :uuid,
-        :occi,
-        :poolboy,
-        :poison,
-        :ex2ms,
-        :retrieval
+        :uuid
       ],
       env: []
     ]
