@@ -14,7 +14,7 @@ defmodule Mg.Net.Pool do
   @doc """
   Create new pool from address + mask or CIDR string
   """
-  @spec create({:inet.ip_address, integer} | String.t) :: t
+  @spec create({:inet.ip_address(), integer} | String.t()) :: t
   def create({{_, _, _, _} = addr, mask}), do: new({addr, mask})
   def create({{_, _, _, _, _, _, _, _} = addr, mask}), do: new({addr, mask})
 

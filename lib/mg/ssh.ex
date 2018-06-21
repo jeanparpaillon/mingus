@@ -14,7 +14,7 @@ defmodule Mg.SSH do
 
   @doc false
   def child_spec(opts) do
-    %{ id: __MODULE__, start: {__MODULE__, :start_link, [opts]}}
+    %{id: __MODULE__, start: {__MODULE__, :start_link, [opts]}}
   end
 
   def start_link(opts) do

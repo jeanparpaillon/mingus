@@ -11,6 +11,7 @@ defmodule Mg do
       {Mg.DNS, Application.get_env(:mingus, :dns)},
       {Mg.Net, Application.get_env(:mingus, :net)}
     ]
+
     Supervisor.start_link(children, strategy: :one_for_one)
   end
 end

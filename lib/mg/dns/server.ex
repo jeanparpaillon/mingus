@@ -56,6 +56,7 @@ defmodule Mg.DNS.Server do
     case Store.lookup(kind: Platform.Application, "occi.app.ip": "#{:inet.ntoa(host)}") do
       [] ->
         handle_query_no_ctx(q, from, s)
+
       [ctx] ->
         handle_query_in_ctx(ctx, q, from, s)
     end

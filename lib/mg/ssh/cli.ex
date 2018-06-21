@@ -133,7 +133,15 @@ defmodule Mg.SSH.Cli do
         %Cli{cm: cm, channel: channel_id, pty: pty0, buf: buf} = s
       ) do
     Logger.debug(fn -> "<ssh> window_change: #{inspect(msg)}" end)
-    pty = %Pty{pty0 | width: width, height: height, pixelWidth: pix_width, pixelHeight: pix_height}
+
+    pty = %Pty{
+      pty0
+      | width: width,
+        height: height,
+        pixelWidth: pix_width,
+        pixelHeight: pix_height
+    }
+
     {chars, buf} = io_request({:window_change, pty0}, buf, pty, nil)
     Connection.write_chars(s, chars)
     {:ok, %Cli{pty: pty, buf: buf}}
@@ -244,7 +252,9 @@ defmodule Mg.SSH.Cli do
   # displaying device...
   # We are *not* really unicode aware yet, we just filter away characters
   # beyond the latin1 range. We however handle the unicode binaries...
-  defp io_request({:window_change, old_tty}, buf, tty, _group), do: window_change(tty, old_tty, buf)
+  defp io_request({:window_change, old_tty}, buf, tty, _group),
+    do: window_change(tty, old_tty, buf)
+
   defp io_request({:put_chars, cs}, buf, tty, _group), do: put_chars(bin_to_list(cs), buf, tty)
 
   defp io_request({:put_chars, :unicode, cs}, buf, tty, _group) do
