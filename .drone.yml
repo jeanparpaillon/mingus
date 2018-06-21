@@ -1,9 +1,10 @@
 pipeline:
-  build: elixir:1.6
-  commands:
-    - mix do local.rebar --force, local.hex --force, deps.get
-    - MIX_ENV=dev mix do format --check-formatted, credo --all
-    - MIX_ENV=test mix coveralls.json
+  build:
+    image: elixir:1.6
+    commands:
+      - mix do local.rebar --force, local.hex --force, deps.get
+      - MIX_ENV=dev mix do format --check-formatted, credo --all
+      - MIX_ENV=test mix coveralls.json
 
   slack-notify:
     image: plugins/slack
