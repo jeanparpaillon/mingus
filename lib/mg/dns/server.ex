@@ -53,13 +53,12 @@ defmodule Mg.DNS.Server do
   end
 
   defp handle_query(q, {host, _port} = from, s) do
-    ctx =
-      case Store.lookup(kind: Platform.Application, "occi.app.ip": "#{:inet.ntoa(host)}") do
-        [] -> Platform.Application.new([])
-        [ctx] -> ctx
-      end
-
-    handle_query_in_ctx(ctx, q, from, s)
+    case Store.lookup(kind: Platform.Application, "occi.app.ip": "#{:inet.ntoa(host)}") do
+      [] ->
+        handle_query_no_ctx(q, from, s)
+      [ctx] ->
+        handle_query_in_ctx(ctx, q, from, s)
+    end
   end
 
   defp handle_query_in_ctx(ctx, q, from, s) do
