@@ -6,9 +6,7 @@ defmodule Mg.SSH.GitCmd do
   """
   require Logger
   use GenServer
-  alias Mg.SSH.Connection
-  alias Mg.SSH.GitCmd
-  alias Mg.SSH.Cli
+  alias Mg.SSH.{GitCmd, Cli, Connection}
   alias OCCI.Store
   alias Mg.Model.Platform
 

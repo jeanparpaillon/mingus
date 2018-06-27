@@ -1,12 +1,13 @@
 defmodule MgTest.Net.Manager do
   use ExUnit.Case
+  alias Mg.Net.Manager
 
   @pool4_27 {{88, 23, 65, 224}, 27}
   @pool6_56 {{0x2001, 0x41D0, 0x009A, 0x0A00, 0, 0, 0, 0}, 56}
 
   setup ctx do
     {:ok, _} =
-      Mg.Net.Manager.start_link([
+      Manager.start_link([
         @pool4_27,
         @pool6_56
       ])
@@ -19,7 +20,7 @@ defmodule MgTest.Net.Manager do
     leases =
       0..29
       |> Enum.reduce(MapSet.new(), fn _, acc ->
-        lease = Mg.Net.Manager.lease(@pool4_27)
+        lease = Manager.lease(@pool4_27)
         assert lease != nil
         MapSet.put(acc, lease)
       end)
@@ -27,7 +28,7 @@ defmodule MgTest.Net.Manager do
     assert MapSet.size(leases) == 30
 
     # No more leases
-    assert Mg.Net.Manager.lease(@pool4_27) == nil
+    assert Manager.lease(@pool4_27) == nil
   end
 
   test "Lease on /56 IPv6 pool", _ctx do
@@ -35,7 +36,7 @@ defmodule MgTest.Net.Manager do
     leases =
       0..255
       |> Enum.reduce(MapSet.new(), fn _, acc ->
-        lease = Mg.Net.Manager.lease(@pool6_56, mask: 64)
+        lease = Manager.lease(@pool6_56, mask: 64)
         assert lease != nil
         MapSet.put(acc, lease)
       end)
@@ -43,17 +44,17 @@ defmodule MgTest.Net.Manager do
     assert MapSet.size(leases) == 256
 
     # No more leases
-    assert Mg.Net.Manager.lease(@pool6_56) == nil
+    assert Manager.lease(@pool6_56) == nil
   end
 
   test "Release not leased block" do
-    refute Mg.Net.Manager.release({{192, 68, 54, 2}, 23})
+    refute Manager.release({{192, 68, 54, 2}, 23})
   end
 
   test "Release leased block" do
-    lease = Mg.Net.Manager.lease(@pool4_27, mask: 30)
-    assert Mg.Net.Manager.release(lease)
+    lease = Manager.lease(@pool4_27, mask: 30)
+    assert Manager.release(lease)
   end
 
-  doctest Mg.Net.Manager
+  doctest Manager
 end

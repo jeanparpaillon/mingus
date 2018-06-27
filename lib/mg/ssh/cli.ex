@@ -4,10 +4,7 @@ defmodule Mg.SSH.Cli do
   """
   require Logger
 
-  alias Mg.SSH.Connection
-  alias Mg.SSH.GitCmd
-  alias Mg.SSH.Cli
-  alias Mg.SSH.Pty
+  alias Mg.SSH.{Connection, GitCmd, Cli, Pty}
   alias OCCI.Store
 
   @behaviour :ssh_channel

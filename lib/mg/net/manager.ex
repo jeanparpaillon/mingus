@@ -14,13 +14,11 @@ defmodule Mg.Net.Manager do
   use GenServer
   use Bitwise
 
-  import Ex2ms
-  import Mg.Net.Pool
-  import Mg.Net.Block
+  alias Mg.Net.{Pool, Ip, Block}
 
-  alias Mg.Net.Pool
-  alias Mg.Net.Ip
-  alias Mg.Net.Block
+  import Ex2ms
+  import Pool
+  import Block
 
   @type policy :: :low | :high | :random
   @type mask :: :unique | integer

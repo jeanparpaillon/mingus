@@ -25,8 +25,7 @@ defmodule Mg.Shell.Parser do
   """
   alias OCCI.Model.Core
   alias OCCI.Store
-  alias Mg.Shell.Complete
-  alias Mg.Shell.Subject
+  alias Mg.Shell.{Complete, Subject}
 
   @spec eval(data :: String.t() | charlist(), s :: map) ::
           :noreply | {:reply, String.t()} | {:stop, msg :: String.t()}
@@ -119,7 +118,7 @@ defmodule Mg.Shell.Parser do
         end)
 
       entity = kind.new(attrs, mixins)
-      entity = OCCI.Store.create(entity)
+      entity = Store.create(entity)
       {:reply, "Created: #{Core.Entity.id(entity)}\n"}
     rescue
       e in RuntimeError ->
@@ -128,7 +127,7 @@ defmodule Mg.Shell.Parser do
   end
 
   defp get(_subject, id, _s) do
-    case OCCI.Store.get(id) do
+    case Store.get(id) do
       nil ->
         {:reply, "NOT FOUND\n"}
 

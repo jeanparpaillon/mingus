@@ -5,10 +5,9 @@ defmodule Mg.DNS.Server do
   require Logger
 
   use GenServer
-  alias OCCI.Store
-  alias Mg.DNS
-  alias Mg.Utils
 
+  alias OCCI.Store
+  alias Mg.{DNS, Utils}
   alias Mg.Model.Platform
 
   def start_link(name, opts) do
