@@ -7,6 +7,7 @@ defmodule Mg.DNS.Server do
   use GenServer
 
   alias OCCI.Store
+  alias Mg.DNS.Record
   alias Mg.{DNS, Utils}
   alias Mg.Model.Platform
 
@@ -15,29 +16,25 @@ defmodule Mg.DNS.Server do
   end
 
   # Callbacks
-  def init(opts) do
-    s = %{
-      nameservers: Keyword.get(opts, :nameservers)
-    }
 
+  def init(opts) do
     Logger.debug("Start DNS")
-    {:ok, s}
+    {:ok, %{nameservers: Keyword.get(opts, :nameservers)}}
   end
 
   def handle_call({:query, from, port, data}, _from, s) do
-    case DNS.Record.decode(data) do
+    case Record.decode(data) do
       {:ok, q} ->
         ans = handle_msg(q, {from, port}, s)
-        {:reply, {:ok, DNS.Record.encode!(ans)}, s}
+        {:reply, {:ok, Record.encode!(ans)}, s}
 
       {:error, _} = e ->
         {:reply, e, s}
     end
   end
 
-  #
   # Private
-  #
+
   defp handle_msg(msg, from, s) do
     ans =
       msg.qdlist
@@ -56,13 +53,13 @@ defmodule Mg.DNS.Server do
       [] ->
         handle_query_no_ctx(q, from, s)
 
-      [ctx] ->
-        handle_query_in_ctx(ctx, q, from, s)
+      [%{id: id} = _ctx] ->
+        handle_query_in_ctx(id, q, from, s)
     end
   end
 
-  defp handle_query_in_ctx(ctx, q, from, s) do
-    case Store.lookup(kind: Platform.Proxy, "occi.app.fqdn": "#{q.domain}", source: ctx.id) do
+  defp handle_query_in_ctx(ctx_id, q, from, s) do
+    case Store.lookup(kind: Platform.Proxy, "occi.app.fqdn": "#{q.domain}", source: ctx_id) do
       [] ->
         # No proxy for the requested app
         handle_query_no_ctx(q, from, s)

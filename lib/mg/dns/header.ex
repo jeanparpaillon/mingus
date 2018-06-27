@@ -8,22 +8,23 @@ defmodule Mg.DNS.Header do
   vals = :lists.map(&{&1, [], nil}, keys)
   pairs = :lists.zip(keys, vals)
 
-  defstruct record
+  @type native :: :inet_dns.dns_header()
   @type t :: %__MODULE__{}
+  defstruct record
 
   @doc """
-  Converts a `DNS.Header` struct to a `:dns_header` record.
+  Converts a `Mg.DNS.Header` struct to a `:dns_header` record.
   """
-  def to_record(%Mg.DNS.Header{unquote_splicing(pairs)}) do
+  @spec to_record(t) :: native
+  def to_record(%__MODULE__{unquote_splicing(pairs)}) do
     {:dns_header, unquote_splicing(vals)}
   end
 
   @doc """
   Converts a `:dns_header` record into a `DNS.Header`.
   """
-  def from_record(file_info)
-
+  @spec from_record(native) :: t
   def from_record({:dns_header, unquote_splicing(vals)}) do
-    %Mg.DNS.Header{unquote_splicing(pairs)}
+    %__MODULE__{unquote_splicing(pairs)}
   end
 end

@@ -8,22 +8,23 @@ defmodule Mg.DNS.Query do
   vals = :lists.map(&{&1, [], nil}, keys)
   pairs = :lists.zip(keys, vals)
 
-  defstruct record
+  @type native :: :inet_dns.dns_query()
   @type t :: %__MODULE__{}
+  defstruct record
 
   @doc """
   Converts a `DNS.Query` struct to a `:dns_query` record.
   """
-  def to_record(%Mg.DNS.Query{unquote_splicing(pairs)}) do
+  @spec to_record(t) :: :inet_dns.dns_query()
+  def to_record(%__MODULE__{unquote_splicing(pairs)}) do
     {:dns_query, unquote_splicing(vals)}
   end
 
   @doc """
   Converts a `:dns_query` record into a `DNS.Query`.
   """
-  def from_record(file_info)
-
+  @spec from_record(:inet_dns.dns_query()) :: t
   def from_record({:dns_query, unquote_splicing(vals)}) do
-    %Mg.DNS.Query{unquote_splicing(pairs)}
+    %__MODULE__{unquote_splicing(pairs)}
   end
 end
