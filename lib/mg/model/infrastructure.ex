@@ -7,18 +7,17 @@ defmodule Mg.Model.Infrastructure do
 
   alias OCCI.Types
 
+  require Types.String
+
   extends(OCCI.Model.Infrastructure)
 
-  mixin(
-    Host,
+  mixin Host,
     title: "physical host",
-    applies: [OCCI.Model.Infrastructure.Compute],
-    attributes: [
-      "mg.host.location": [
-        type: Types.String,
-        required: true,
-        description: "Physical host location (datacenter, ...)"
-      ]
-    ]
-  )
+    applies: [OCCI.Model.Infrastructure.Compute] do
+
+    attribute "mg.host.location",
+      type: Types.String,
+      required: true,
+      description: "Physical host location (datacenter, ...)"
+  end
 end
