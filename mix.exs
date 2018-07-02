@@ -67,7 +67,7 @@ defmodule Mg.Mixfile do
       # Test only
       {:excoveralls, "~> 0.9", only: :test, runtime: false},
       # All envs
-      {:occi, github: "erocci/exocci"},
+      {:occi, ">= 0.0.0"},
       {:ranch, "~> 1.3"},
       {:poolboy, "~> 1.5"},
       {:poison, "~> 3.1"},
