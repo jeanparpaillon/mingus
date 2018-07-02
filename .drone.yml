@@ -4,7 +4,7 @@ pipeline:
     commands:
       - mix do local.rebar --force, local.hex --force, deps.get
       - MIX_ENV=dev mix do format --check-formatted, credo --all
-      - MIX_ENV=test mix coveralls.json
+  #   - MIX_ENV=test mix coveralls.json
 
   # slack-notify:
   #   image: plugins/slack
