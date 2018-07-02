@@ -14,10 +14,11 @@ defmodule Mg.Model.Infrastructure do
   mixin Host,
     title: "physical host",
     applies: [OCCI.Model.Infrastructure.Compute] do
-
-    attribute "mg.host.location",
+    attribute(
+      "mg.host.location",
       type: Types.String,
       required: true,
       description: "Physical host location (datacenter, ...)"
+    )
   end
 end

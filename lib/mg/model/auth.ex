@@ -13,30 +13,36 @@ defmodule Mg.Model.Auth do
   kind User,
     parent: Core.Resource,
     title: "platform user" do
-
-    attribute "occi.auth.login",
+    attribute(
+      "occi.auth.login",
       type: OCCI.Types.String,
       required: true,
       description: "User login"
+    )
 
-    attribute "occi.auth.uid",
+    attribute(
+      "occi.auth.uid",
       type: OCCI.Types.Integer,
       required: true,
       description: "User ID"
+    )
 
-    attribute "occi.auth.gid",
+    attribute(
+      "occi.auth.gid",
       type: OCCI.Types.Integer,
       required: true,
       description: "User group ID"
+    )
   end
 
   mixin SshUser,
     term: "ssh_user",
     applies: [User] do
-
-    attribute "occi.auth.ssh.pub_key",
+    attribute(
+      "occi.auth.ssh.pub_key",
       type: OCCI.Types.String,
       required: true,
       description: "Public SSH Key"
+    )
   end
 end
