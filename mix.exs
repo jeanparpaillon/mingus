@@ -52,6 +52,7 @@ defmodule Mg.Mixfile do
 
   defp aliases do
     [
+      compile: ["format", "compile", "credo"],
       test: "test --no-start"
     ]
   end
