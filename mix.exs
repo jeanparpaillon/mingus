@@ -9,7 +9,7 @@ defmodule Mg.Mixfile do
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      aliases: aliases(),
+      aliases: aliases(Mix.env()),
       dialyzer: [plt_add_deps: :project],
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: cli_env_for(:test, ~w(
@@ -50,7 +50,8 @@ defmodule Mg.Mixfile do
     ]
   end
 
-  defp aliases do
+  defp aliases(:prod), do: []
+  defp aliases(_) do
     [
       compile: ["format", "compile", "credo"],
       test: "test --no-start"
