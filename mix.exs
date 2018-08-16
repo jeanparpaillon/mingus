@@ -74,7 +74,8 @@ defmodule Mg.Mixfile do
       {:poison, "~> 3.1"},
       {:ex2ms, "~> 1.5"},
       {:retrieval, github: "jeanparpaillon/retrieval"},
-      {:distillery, "~> 1.4", runtime: false}
+      {:distillery, "~> 1.4", runtime: false},
+      {:edeliver, "~> 1.4", runtime: false}
     ]
   end
 
