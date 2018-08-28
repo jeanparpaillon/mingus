@@ -6,10 +6,15 @@ config :mingus,
     listen: [{"0.0.0.0", 10022}]
   ]
 
-config :mingus,
-  dns: [
-    listen: [
-      {:udp, "0.0.0.0", 10053},
-      {:tcp, "0.0.0.0", 10053}
+config :erldns, zones: "priv/dns_zones.json"
+
+config :erldns,
+  servers: [
+    [
+      name: :dns_inet11,
+      address: '0.0.0.0',
+      port: 10053,
+      family: :inet,
+      processes: 2
     ]
   ]
