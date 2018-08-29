@@ -52,7 +52,7 @@ defmodule Mg.Mixfile do
 
   defp aliases(:prod),
     do: [
-      compile: [&Mix.Mg.config/1, "compile"]
+      compile: ["mg", "compile"]
     ]
 
   defp aliases(_) do
