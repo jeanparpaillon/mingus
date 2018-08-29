@@ -4,6 +4,8 @@ defmodule Mg.DNS do
   """
   require Logger
 
+  alias Mg.DNS
+
   @doc false
   def child_spec(opts) do
     %{id: __MODULE__, start: {__MODULE__, :start_link, [opts]}, type: :supervisor}
@@ -11,7 +13,7 @@ defmodule Mg.DNS do
 
   def start_link(opts) do
     children = [
-      {Mg.DNS.Conf, opts}
+      {DNS.Conf, opts}
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one)

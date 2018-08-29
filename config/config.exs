@@ -4,23 +4,23 @@ config :mingus, id: "Mingus"
 
 config :mingus, net: []
 
-# DNS
-config :erldns, catch_exceptions: false
-config :erldns, use_root_hints: true
-config :erldns, dnssec: [enabled: true]
-
-config :erldns,
-  zone_delegates: [
-    {"cloud.example.com", Mg.DNS.Fifo}
+# Project-Fifo configuration:
+# [ fifo_service() ]
+# fifo_service :: {fifo_name(), mdns | {ip :: charlist(), port :: integer()}}
+# fifo_name :: sniffle
+config :mingus,
+  fifo_services: [
+    sniffle: :mdns
   ]
 
-config :erldns,
-  pools: [
-    {:tcp_worker_pool, :erldns_worker,
-     [
-       size: 10,
-       max_overflow: 20
-     ]}
+# DNS
+config :mingus,
+  dns: [
+    servers: [{"0.0.0.0", 53, processes: 2}],
+    pool: [
+      size: 10,
+      max_overflow: 20
+    ]
   ]
 
 # Data store

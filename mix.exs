@@ -50,11 +50,14 @@ defmodule Mg.Mixfile do
     ]
   end
 
-  defp aliases(:prod), do: []
+  defp aliases(:prod),
+    do: [
+      compile: [&Mix.Mg.config/1, "compile"]
+    ]
 
   defp aliases(_) do
     [
-      compile: ["format", "compile"],
+      compile: ["format", "mg", "compile"],
       test: "test --no-start"
     ]
   end
@@ -70,6 +73,7 @@ defmodule Mg.Mixfile do
       # Test only
       {:excoveralls, "~> 0.9", only: :test, runtime: false},
       # All envs
+      {:quaff, github: "jeanparpaillon/quaff"},
       {:erldns, github: "dnsimple/erldns"},
       {:libsniffle, "~> 0.3", git: "https://gitlab.com/jean.parpaillon/libsniffle.git"},
       {:occi, github: "erocci/exocci"},

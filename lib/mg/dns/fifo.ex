@@ -3,6 +3,9 @@ defmodule Mg.DNS.Fifo do
   DNS delegate module querying Project Fifo (libsniffle)
   """
   require Logger
+  require Mg.DNS.Records
+
+  use Mg.DNS.Constants
 
   alias Mg.DNS
 
@@ -13,26 +16,56 @@ defmodule Mg.DNS.Fifo do
   """
   def get_records_by_name(qname) do
     qname = String.downcase(qname)
-    domain = DNS.Conf.get(:domain)
+    delegates = DNS.Conf.get(:delegates)
 
-    parts =
-      ("^(?<name>.*)\." <> domain <> "$")
-      |> Regex.compile!()
-      |> Regex.named_captures(qname)
-
-    case parts do
+    case match_domain(delegates, qname) do
       nil ->
         []
 
-      %{"name" => name} ->
-        do_lookup(name)
+      {name, domain, org_id} ->
+        do_lookup(qname, name, domain, org_id)
     end
   end
 
   ###
   ### Priv
   ###
-  defp do_lookup(name) do
-    []
+  defp match_domain([], _qname), do: nil
+
+  defp match_domain([{r_domain, org_id} | domains], qname) do
+    case Regex.named_captures(r_domain, qname) do
+      nil ->
+        match_domain(domains, qname)
+
+      %{"domain" => domain, "name" => name} ->
+        {name, domain, org_id}
+    end
+  end
+
+  defp do_lookup(qname, name, _domain, org_id) do
+    case :ls_vm.get_hostname(name, org_id) do
+      {:ok, reply} ->
+        build_replies(qname, reply)
+
+      _ ->
+        []
+    end
+  end
+
+  defp build_replies(qname, reply) do
+    reply
+    |> :ft_hostname.a()
+    |> Enum.map(fn {_, ip} -> make_record(qname, :ft_iprange.to_bin(ip)) end)
+  end
+
+  defp make_record(qname, ip) do
+    {:ok, ip} = :inet.parse_address('#{ip}')
+
+    DNS.Records.dns_rr(
+      name: qname,
+      type: @_DNS_TYPE_A,
+      ttl: 60,
+      data: DNS.Records.dns_rrdata_a(ip: ip)
+    )
   end
 end

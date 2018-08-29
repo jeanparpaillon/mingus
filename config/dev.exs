@@ -6,15 +6,17 @@ config :mingus,
     listen: [{"0.0.0.0", 10022}]
   ]
 
-config :erldns, zones: "priv/dns_zones.json"
+config :mingus,
+  fifo_services: [
+    sniffle: {'10.1.1.240', 4210}
+  ]
 
-config :erldns,
-  servers: [
-    [
-      name: :dns_inet11,
-      address: '0.0.0.0',
-      port: 10053,
-      family: :inet,
-      processes: 2
+config :mingus,
+  dns: [
+    servers: [{"0.0.0.0", 10053, processes: 2}],
+    zones: [
+      {:file, "priv/dns_zones.json"},
+      {:fifo, "cloud.example.com", "03d4044d-722f-47c3-acec-b5a2f0115e6a"},
+      {:fifo, "priv.example.com", "aaaaa"}
     ]
   ]
