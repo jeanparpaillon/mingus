@@ -50,17 +50,13 @@ defmodule Mg.Mixfile do
     ]
   end
 
-  defp aliases(:prod),
-    do: [
-      compile: ["mg", "compile"]
-    ]
+  defp aliases(:prod), do: []
 
-  defp aliases(_) do
-    [
-      compile: ["format", "mg", "compile"],
+  defp aliases(_),
+    do: [
+      compile: ["format", "compile"],
       test: "test --no-start"
     ]
-  end
 
   defp deps do
     [

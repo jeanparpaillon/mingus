@@ -30,9 +30,7 @@ defmodule Mg.DNS.Conf do
   ###
   ### Priv
   ###
-  defp domain_match({:file, _}, acc), do: acc
-
-  defp domain_match({:fifo, domain, org_id}, acc) do
+  defp domain_match({domain, org_id}, acc) do
     safe_domain =
       domain
       |> String.downcase()

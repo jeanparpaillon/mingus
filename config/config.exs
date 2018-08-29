@@ -5,22 +5,20 @@ config :mingus, id: "Mingus"
 config :mingus, net: []
 
 # Project-Fifo configuration:
-# [ fifo_service() ]
-# fifo_service :: {fifo_name(), mdns | {ip :: charlist(), port :: integer()}}
-# fifo_name :: sniffle
-config :mingus,
-  fifo_services: [
-    sniffle: :mdns
-  ]
+config :libsniffle, sniffle: :mdns
 
 # DNS
 config :mingus,
   dns: [
-    servers: [{"0.0.0.0", 53, processes: 2}],
-    pool: [
-      size: 10,
-      max_overflow: 20
-    ]
+    zones: []
+  ]
+
+config :erldns,
+  catch_exceptions: false,
+  use_root_hints: true,
+  dnssec: [enabled: true],
+  pools: [
+    {:tcp_worker_pool, :erldns_worker, [size: 10, max_overflow: 20]}
   ]
 
 # Data store
