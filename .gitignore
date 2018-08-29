@@ -19,3 +19,4 @@ erl_crash.dump
 /examples/hello
 /src/mg_shell_lexer.erl
 .deliver/releases/
+/config/prod.secret.exs

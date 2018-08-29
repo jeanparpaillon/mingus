@@ -15,9 +15,9 @@ STAGING_USER="root"
 #PRODUCTION_USER=$STAGING__USER
 
 # For *Phoenix* projects, symlink prod.secret.exs to our tmp source
-# pre_erlang_get_and_update_deps() {
-#   local _prod_secret_path="/opt/edeliver/linky/prod.secret.exs"
-#   if [ "$TARGET_MIX_ENV" = "prod" ]; then
-#     __sync_remote "ln -sfn '$_prod_secret_path' '$BUILD_AT/apps/linky_web/config/prod.secret.exs'"
-#   fi
-# }
+pre_erlang_get_and_update_deps() {
+  local _prod_secret_path="/opt/edeliver/mingus/prod.secret.exs"
+  if [ "$TARGET_MIX_ENV" = "prod" ]; then
+    __sync_remote "ln -sfn '$_prod_secret_path' '$BUILD_AT/config/prod.secret.exs'"
+  fi
+}
